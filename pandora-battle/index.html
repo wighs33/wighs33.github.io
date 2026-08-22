@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#090a0e" />
-  <title>Pandora Battle — Multiplayer PvP Arena</title>
-  <meta name="description" content="Pandora Battle is a fast-paced multiplayer PvP arena game. Choose your weapon, wield unique Pandora abilities, and dominate the arena." />
+  <title>Pandora Battle — Solo-Developed UE5 Multiplayer Action Game</title>
+  <meta name="description" content="A solo-developed Unreal Engine 5 multiplayer action game built around three weapon–Pandora loadouts, progressive skill unlocks, and Steam sessions." />
   <style>
     :root{
       --bg:#090a0e;--bg2:#0d1016;--panel:#111722;--panel2:#0d131d;--line:rgba(255,255,255,.1);--text:#f5f7fb;--muted:#9ca6b4;
@@ -49,76 +49,78 @@
 <main>
 <section class="hero" id="home">
   <div class="heroInner">
-    <div class="leftMeta"><span class="sideLabel">Online PvP Arena</span><span class="metaLine"></span><span class="sideLabel">Unreal Engine 5</span></div>
+    <div class="leftMeta"><span class="sideLabel">Steam Multiplayer</span><span class="metaLine"></span><span class="sideLabel">Unreal Engine 5</span></div>
     <div class="heroCenter">
       <div class="sigil">✦</div>
       <h1>Pandora<span>Battle</span></h1>
-      <p class="tagline" data-lang="en">Choose your weapon. Wield a Pandora. Outplay your rivals in fast, chaotic arena battles.</p>
-      <p class="tagline" data-lang="ko">무기를 선택하고 판도라의 힘을 다뤄, 빠르고 혼란스러운 아레나 전투에서 상대를 압도하세요.</p>
-      <div class="heroActions"><a class="btn primary steam-link" href="#">PLAY ON STEAM ↗</a><button class="btn secondary" id="trailerBtn">▶ WATCH TRAILER</button></div>
+      <p class="tagline" data-lang="en">Build three weapon–Pandora loadouts, unlock new skills as each Pandora grows, and switch tactics in online battles for up to six players.</p>
+      <p class="tagline" data-lang="ko">무기와 판도라를 세 개의 로드아웃으로 구성하고, 판도라 성장에 따라 스킬을 해금하며 최대 6인의 온라인 전투에서 전술을 전환하세요.</p>
+      <div class="heroActions"><a class="btn primary steam-link" href="#">VIEW ON STEAM ↗</a><button class="btn secondary" id="trailerBtn">▶ WATCH TRAILER</button></div>
     </div>
-    <div class="rightMeta"><span class="sideLabel">Multiplayer</span><span class="metaLine"></span><span class="sideLabel">Solo Developed</span></div>
+    <div class="rightMeta"><span class="sideLabel">Up to 6 Players</span><span class="metaLine"></span><span class="sideLabel">Solo Developed</span></div>
   </div>
   <div class="scroll">SCROLL TO ENTER</div>
 </section>
 
 <section class="section dark" id="gameplay">
-  <div class="kicker">THE BATTLE BEGINS</div>
-  <h2 class="sectionTitle" data-lang="en">Fight fast.<br>Adapt faster.</h2><h2 class="sectionTitle" data-lang="ko">빠르게 싸우고,<br>더 빠르게 적응하세요.</h2>
-  <p class="sectionLead" data-lang="en">Pandora Battle is a fast-paced third-person PvP arena where weapons, positioning, timing, and powerful Pandora abilities collide.</p>
-  <p class="sectionLead" data-lang="ko">Pandora Battle은 무기, 포지셔닝, 타이밍, 강력한 판도라 능력이 맞부딪히는 빠른 템포의 3인칭 PvP 아레나 게임입니다.</p>
+  <div class="kicker">CORE GAMEPLAY</div>
+  <h2 class="sectionTitle" data-lang="en">Build your loadout.<br>Change the battle.</h2><h2 class="sectionTitle" data-lang="ko">로드아웃을 구성하고,<br>전투의 흐름을 바꾸세요.</h2>
+  <p class="sectionLead" data-lang="en">Pandora Battle is a third-person multiplayer action game built around pairing weapons with Pandoras. Each loadout changes your attack range, available skills, and role in battle.</p>
+  <p class="sectionLead" data-lang="ko">Pandora Battle은 무기와 판도라의 조합을 중심으로 만든 3인칭 멀티플레이 액션 게임입니다. 로드아웃에 따라 공격 거리, 사용할 수 있는 스킬과 전투 역할이 달라집니다.</p>
   <div class="featureSplit">
-    <article class="feature red"><span class="featureNo">01 / COMBAT</span><h3 data-lang="en">Close the distance.</h3><h3 data-lang="ko">거리를 지배하세요.</h3><p data-lang="en">Dash, combo, block, pressure, and punish. Every weapon changes how you approach a fight.</p><p data-lang="ko">대시, 콤보, 방어와 압박. 무기에 따라 전투에 접근하는 방식이 달라집니다.</p></article>
-    <article class="feature gold"><span class="featureNo">02 / PANDORA</span><h3 data-lang="en">Break the rules.</h3><h3 data-lang="ko">판도를 뒤집으세요.</h3><p data-lang="en">Equip unique Pandora abilities and unleash elemental, mechanical, or dark powers at the right moment.</p><p data-lang="ko">판도라 능력을 장착하고, 적절한 순간에 원소·기계·어둠의 힘을 폭발시키세요.</p></article>
-    <article class="feature blue"><span class="featureNo">03 / ARENA</span><h3 data-lang="en">Read the battlefield.</h3><h3 data-lang="ko">전장을 읽으세요.</h3><p data-lang="en">Positioning matters. Control space, track enemies, and survive until your team takes the advantage.</p><p data-lang="ko">포지셔닝이 승부를 가릅니다. 공간을 장악하고 적의 움직임을 읽어 팀의 우위를 만드세요.</p></article>
+    <article class="feature red"><span class="featureNo">01 / LOADOUT</span><h3 data-lang="en">Pair weapon and Pandora.</h3><h3 data-lang="ko">무기와 판도라를 조합하세요.</h3><p data-lang="en">Prepare up to three weapon–Pandora pairs and switch to the set that fits the range and situation.</p><p data-lang="ko">최대 세 개의 무기–판도라 조합을 준비하고, 거리와 상황에 맞는 세트로 전환하세요.</p></article>
+    <article class="feature gold"><span class="featureNo">02 / GROWTH</span><h3 data-lang="en">Unlock each Pandora.</h3><h3 data-lang="ko">판도라를 성장시키세요.</h3><p data-lang="en">Invest Pandora Force points to reach level 3, unlocking one of the Pandora’s three skills at each level.</p><p data-lang="ko">판도라 포인트를 투자해 3레벨까지 성장시키고, 레벨마다 하나씩 총 세 개의 스킬을 해금하세요.</p></article>
+    <article class="feature blue"><span class="featureNo">03 / COMBAT</span><h3 data-lang="en">Use the right tool.</h3><h3 data-lang="ko">상황에 맞는 전투를 선택하세요.</h3><p data-lang="en">Move between melee, ranged, control, burst, and support options by combining compatible weapons and Pandora skills.</p><p data-lang="ko">호환되는 무기와 판도라 스킬을 조합해 근접, 원거리, 제어, 폭발 화력과 지원 역할을 선택하세요.</p></article>
   </div>
 </section>
 
 <section class="section" id="pandora">
-  <div class="kicker center">CHOOSE YOUR PANDORA</div>
-  <h2 class="sectionTitle center" data-lang="en">Power changes<br>the way you fight.</h2><h2 class="sectionTitle center" data-lang="ko">힘이 바뀌면<br>전투 방식도 바뀝니다.</h2>
-  <p class="sectionLead center" data-lang="en">Each Pandora brings a different combat role, range, tempo, and threat. Build your own style around the powers you equip.</p><p class="sectionLead center" data-lang="ko">각 판도라는 서로 다른 역할, 사거리, 템포와 위협을 제공합니다. 장착한 힘을 중심으로 자신만의 전투 스타일을 만드세요.</p>
+  <div class="kicker center">BUILD YOUR PANDORA LOADOUT</div>
+  <h2 class="sectionTitle center" data-lang="en">Three slots.<br>Three skills each.</h2><h2 class="sectionTitle center" data-lang="ko">세 개의 슬롯,<br>판도라마다 세 개의 스킬.</h2>
+  <p class="sectionLead center" data-lang="en">Equip up to three Pandoras. Each one has three level-gated skills, and selecting a loadout binds its unlocked skills to your combat controls.</p><p class="sectionLead center" data-lang="ko">최대 세 개의 판도라를 장착할 수 있습니다. 각 판도라는 레벨에 따라 해금되는 세 개의 스킬을 가지며, 선택한 로드아웃의 스킬이 전투 입력에 연결됩니다.</p>
   <div class="pandoraGrid">
-    <div class="pandora fire"><div class="pandoraIcon">🔥</div><div class="pandoraText"><b>Fire</b><span>Pressure · Burst</span></div></div>
-    <div class="pandora ice"><div class="pandoraIcon">❄</div><div class="pandoraText"><b>Ice</b><span>Control · Range</span></div></div>
-    <div class="pandora lightning"><div class="pandoraIcon">⚡</div><div class="pandoraText"><b>Lightning</b><span>Mobility · Impact</span></div></div>
-    <div class="pandora dark"><div class="pandoraIcon">◉</div><div class="pandoraText"><b>Darkness</b><span>Disrupt · Void</span></div></div>
-    <div class="pandora machine"><div class="pandoraIcon">⌬</div><div class="pandoraText"><b>Machine</b><span>Firepower · Zone</span></div></div>
-    <div class="pandora light"><div class="pandoraIcon">✦</div><div class="pandoraText"><b>Light</b><span>Support · Recovery</span></div></div>
+    <div class="pandora fire"><div class="pandoraIcon">🔥</div><div class="pandoraText"><b>Fire</b><span>Burn · Slash · Burst</span></div></div>
+    <div class="pandora ice"><div class="pandoraIcon">❄</div><div class="pandoraText"><b>Ice</b><span>Freeze · Spike · Control</span></div></div>
+    <div class="pandora lightning"><div class="pandoraIcon">⚡</div><div class="pandoraText"><b>Lightning</b><span>Flash · Strike · Overcharge</span></div></div>
+    <div class="pandora dark"><div class="pandoraIcon">◉</div><div class="pandoraText"><b>Darkness</b><span>Black Hole · Stain · Ray</span></div></div>
+    <div class="pandora machine"><div class="pandoraIcon">⌬</div><div class="pandoraText"><b>Machine</b><span>Barrier · Missile · Beam</span></div></div>
+    <div class="pandora light"><div class="pandoraIcon">✦</div><div class="pandoraText"><b>Light</b><span>Heal · Holy Ball · Speed</span></div></div>
   </div>
 </section>
 
 <section class="section dark" id="arsenal">
-  <div class="kicker">CHOOSE YOUR WEAPON</div>
-  <h2 class="sectionTitle" data-lang="en">Different weapons.<br>Different answers.</h2><h2 class="sectionTitle" data-lang="ko">무기가 달라지면<br>해답도 달라집니다.</h2>
+  <div class="kicker">PAIR YOUR WEAPON</div>
+  <h2 class="sectionTitle" data-lang="en">Weapons change<br>how you engage.</h2><h2 class="sectionTitle" data-lang="ko">무기에 따라<br>교전 방식이 달라집니다.</h2>
   <div class="arsenal">
-    <div class="weaponHero"><div class="weaponCopy"><span class="kicker">ARSENAL</span><h3>Build your playstyle.</h3><p data-lang="en">Fight up close, keep your distance, burst from range, or mix weapon pressure with Pandora abilities.</p><p data-lang="ko">근접에서 압박하고, 거리를 유지하고, 원거리에서 화력을 쏟거나 판도라 스킬과 무기 전투를 조합하세요.</p></div></div>
+    <div class="weaponHero"><div class="weaponCopy"><span class="kicker">ARSENAL</span><h3 data-lang="en">Pair weapon and Pandora.</h3><h3 data-lang="ko">무기와 판도라를 한 세트로.</h3><p data-lang="en">Each of the three loadout slots stores a compatible weapon and Pandora. Switch slots to change both your basic attack pattern and active skill set.</p><p data-lang="ko">세 개의 로드아웃 슬롯마다 호환되는 무기와 판도라를 한 세트로 저장합니다. 슬롯을 전환하면 기본 공격 방식과 활성 스킬 구성이 함께 바뀝니다.</p></div></div>
     <div class="weaponList"><div class="weapon"><div><small>FAST</small>Dagger</div></div><div class="weapon"><div><small>BALANCED</small>Sword</div></div><div class="weapon"><div><small>HEAVY</small>Greatsword</div></div><div class="weapon"><div><small>RANGED</small>Bow</div></div><div class="weapon"><div><small>FIREPOWER</small>Gun</div></div><div class="weapon"><div><small>IMPACT</small>Axe</div></div></div>
   </div>
 </section>
 
 <section class="section" id="multiplayer">
-  <div class="kicker">MULTIPLAYER ARENA</div>
-  <h2 class="sectionTitle" data-lang="en">Enter. Fight.<br>Run it back.</h2><h2 class="sectionTitle" data-lang="ko">입장하고, 싸우고,<br>다시 도전하세요.</h2>
+  <div class="kicker">STEAM MULTIPLAYER</div>
+  <h2 class="sectionTitle" data-lang="en">Find a room.<br>Start the fight.</h2><h2 class="sectionTitle" data-lang="ko">방을 찾고,<br>전투를 시작하세요.</h2>
+  <p class="sectionLead" data-lang="en">Quick Match, room browsing, Steam invitations, and a separate training room support both online matches and solo practice.</p>
+  <p class="sectionLead" data-lang="ko">퀵 매치, 방 목록, Steam 초대와 별도의 훈련장을 제공해 온라인 대전과 혼자 하는 연습을 모두 지원합니다.</p>
   <div class="multiPanel"><div class="multiVisual"><div class="versus">VS</div></div><div class="multiList">
-    <div class="multiItem"><b>Quick Match</b><p data-lang="en">Jump into an available match quickly and get straight to the fight.</p><p data-lang="ko">참가 가능한 매치에 빠르게 들어가 전투를 시작하세요.</p></div>
-    <div class="multiItem"><b>Room List</b><p data-lang="en">Browse rooms, create your own match, and play with your preferred setup.</p><p data-lang="ko">방 목록을 확인하고 원하는 설정으로 직접 매치를 만들 수 있습니다.</p></div>
-    <div class="multiItem"><b>Steam Friends</b><p data-lang="en">Invite friends and join matches through Steam-integrated multiplayer features.</p><p data-lang="ko">Steam 연동 기능을 통해 친구를 초대하고 함께 플레이하세요.</p></div>
-    <div class="multiItem"><b>Training Mode</b><p data-lang="en">Experiment with weapons, skills, stats, and combat against configurable bots.</p><p data-lang="ko">무기, 스킬, 능력치를 시험하고 설정 가능한 봇과 자유롭게 전투를 연습하세요.</p></div>
+    <div class="multiItem"><b>Quick Match</b><p data-lang="en">Searches available Steam lobbies and joins one; if none is available, it creates a new room.</p><p data-lang="ko">참가 가능한 Steam 로비를 검색해 입장하고, 방이 없으면 새 로비를 생성합니다.</p></div>
+    <div class="multiItem"><b>Room List</b><p data-lang="en">Browse sessions, create a named room, or join a selected lobby before entering the match.</p><p data-lang="ko">세션 목록을 확인하고, 이름을 지정해 방을 만들거나 선택한 로비에 참가할 수 있습니다.</p></div>
+    <div class="multiItem"><b>Steam Friends</b><p data-lang="en">Open the Steam invite overlay from the lobby, and send friend requests to players you meet.</p><p data-lang="ko">로비에서 Steam 초대 오버레이를 열고, 함께 플레이한 사용자에게 친구 요청을 보낼 수 있습니다.</p></div>
+    <div class="multiItem"><b>Training Mode</b><p data-lang="en">Practice against bots, change their weapon or unarmed state, and toggle whether they attack.</p><p data-lang="ko">훈련 봇을 상대로 연습하며, 봇의 무기·맨손 상태와 공격 여부를 직접 설정할 수 있습니다.</p></div>
   </div></div>
 </section>
 
 <section class="section dark" id="media">
-  <div class="kicker center">MEDIA</div><h2 class="sectionTitle center">Arena snapshots.</h2><p class="sectionLead center" data-lang="en">Replace these slots with your latest screenshots and the site becomes production-ready without changing the layout.</p><p class="sectionLead center" data-lang="ko">이 영역에 최신 스크린샷만 넣으면 레이아웃을 바꾸지 않고 바로 실제 게임 사이트로 완성할 수 있습니다.</p>
-  <div class="gallery"><div class="shot"><span>SCREENSHOT 01</span></div><div class="shot"><span>SCREENSHOT 02</span></div><div class="shot"><span>SCREENSHOT 03</span></div><div class="shot"><span>SCREENSHOT 04</span></div><div class="shot"><span>SCREENSHOT 05</span></div></div>
+  <div class="kicker center">MEDIA</div><h2 class="sectionTitle center" data-lang="en">See Pandora Battle in action.</h2><h2 class="sectionTitle center" data-lang="ko">Pandora Battle의 전투를 확인하세요.</h2><p class="sectionLead center" data-lang="en">A closer look at Pandora loadouts, elemental skills, weapon combat, Steam lobbies, and training mode.</p><p class="sectionLead center" data-lang="ko">판도라 로드아웃, 속성 스킬, 무기 전투, Steam 로비와 훈련 모드를 장면별로 확인할 수 있습니다.</p>
+  <div class="gallery"><div class="shot"><span>PANDORA LOADOUT</span></div><div class="shot"><span>ELEMENTAL SKILL</span></div><div class="shot"><span>WEAPON COMBAT</span></div><div class="shot"><span>STEAM LOBBY</span></div><div class="shot"><span>TRAINING MODE</span></div></div>
 </section>
 
-<section class="cta"><div class="kicker">ENTER THE ARENA</div><h2>Pandora Battle</h2><p data-lang="en">Choose your weapon, master your Pandora, and take the fight online.</p><p data-lang="ko">무기를 선택하고 판도라를 익혀 온라인 아레나에 뛰어드세요.</p><a href="#" class="btn primary steam-link">PLAY / WISHLIST ON STEAM ↗</a></section>
+<section class="cta"><div class="kicker">ENTER THE ARENA</div><h2>Pandora Battle</h2><p data-lang="en">Prepare three weapon–Pandora pairs, master each skill set, and take your build into a Steam multiplayer match.</p><p data-lang="ko">세 개의 무기–판도라 조합을 준비하고 각 스킬 구성을 익혀 Steam 멀티플레이 전투에 참여하세요.</p><a href="#" class="btn primary steam-link">VIEW ON STEAM ↗</a></section>
 </main>
 
-<footer class="footer"><div>PANDORA BATTLE · MULTIPLAYER PVP ARENA · 2026</div><div class="lang"><button id="enBtn" class="active">EN</button><button id="koBtn">KO</button></div><div>© SOLO DEVELOPER</div></footer>
+<footer class="footer"><div>PANDORA BATTLE · UE5 MULTIPLAYER ACTION</div><div class="lang"><button id="enBtn" class="active">EN</button><button id="koBtn">KO</button></div><div>SOLO DEVELOPED</div></footer>
 
-<div class="modal" id="trailerModal"><div class="modalBox"><button class="close" id="closeTrailer">×</button><div class="videoFallback">ADD assets/trailer.mp4</div><video controls id="trailer"><source src="assets/trailer.mp4" type="video/mp4"></video></div></div>
+<div class="modal" id="trailerModal"><div class="modalBox"><button class="close" id="closeTrailer">×</button><div class="videoFallback">TRAILER COMING SOON</div><video controls id="trailer"><source src="assets/trailer.mp4" type="video/mp4"></video></div></div>
 <div class="toast" id="toast">Steam store link will be added here.</div>
 
 <script>
