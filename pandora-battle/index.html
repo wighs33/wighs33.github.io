@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#090a0e" />
+  <title>Pandora Battle — Multiplayer PvP Arena</title>
+  <meta name="description" content="Pandora Battle is a fast-paced multiplayer PvP arena game. Choose your weapon, wield unique Pandora abilities, and dominate the arena." />
+  <style>
+    :root{
+      --bg:#090a0e;--bg2:#0d1016;--panel:#111722;--panel2:#0d131d;--line:rgba(255,255,255,.1);--text:#f5f7fb;--muted:#9ca6b4;
+      --red:#ff4968;--blue:#52a8ff;--gold:#ffd978;--max:1240px;
+    }
+    *{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow-x:hidden} a{text-decoration:none;color:inherit} button{font:inherit}
+    .noise{position:fixed;inset:0;pointer-events:none;z-index:80;opacity:.035;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.7'/%3E%3C/svg%3E")}
+    .nav{position:fixed;z-index:70;left:0;right:0;top:0;height:72px;display:flex;align-items:center;justify-content:space-between;padding:0 max(24px,calc((100vw - var(--max))/2));background:linear-gradient(to bottom,rgba(7,8,12,.92),rgba(7,8,12,.5));backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.06)}
+    .logo{font-weight:900;letter-spacing:.16em;font-size:15px}.logo span{color:var(--gold)} .navlinks{display:flex;gap:26px;color:#b9c0cc;font-size:12px}.navlinks a:hover{color:white}.steamTop{padding:11px 15px;border:1px solid rgba(255,255,255,.18);font-size:11px;font-weight:800;letter-spacing:.07em;background:rgba(255,255,255,.035)}
+    .hero{min-height:100vh;position:relative;display:flex;align-items:center;padding:112px max(24px,calc((100vw - var(--max))/2)) 60px;overflow:hidden;background:
+      radial-gradient(circle at 10% 45%,rgba(255,73,104,.25),transparent 33%),
+      radial-gradient(circle at 90% 45%,rgba(82,168,255,.25),transparent 33%),
+      linear-gradient(rgba(6,8,13,.44),rgba(6,8,13,.78)),url('assets/hero.jpg') center/cover no-repeat;
+    }
+    .hero:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,73,104,.13),transparent 37%,transparent 63%,rgba(82,168,255,.13));mix-blend-mode:screen}.hero:after{content:"";position:absolute;left:50%;top:12%;bottom:8%;width:1px;background:linear-gradient(transparent,rgba(255,255,255,.18),transparent)}
+    .heroInner{position:relative;z-index:2;width:100%;display:grid;grid-template-columns:1fr minmax(380px,680px) 1fr;align-items:center;gap:24px}.sideLabel{font-size:10px;letter-spacing:.28em;color:#a9b1bd;text-transform:uppercase}.leftMeta,.rightMeta{display:flex;flex-direction:column;gap:14px}.leftMeta{align-items:flex-start}.rightMeta{align-items:flex-end;text-align:right}.metaLine{width:72px;height:1px;background:var(--line)}
+    .heroCenter{text-align:center}.sigil{width:72px;height:72px;margin:0 auto 18px;border:1px solid rgba(255,217,120,.45);border-radius:50%;display:grid;place-items:center;box-shadow:0 0 50px rgba(255,217,120,.12);font-size:28px;color:var(--gold)}
+    h1{font-size:clamp(58px,8.2vw,116px);line-height:.84;letter-spacing:-.065em;margin:0;text-transform:uppercase;text-shadow:0 10px 50px rgba(0,0,0,.6)}h1 span{display:block;font-size:.42em;letter-spacing:.12em;margin-top:15px;color:#dfe4ec}.tagline{margin:26px auto 0;max-width:760px;color:#d0d6df;font-size:16px;line-height:1.7}.heroActions{margin-top:30px;display:flex;justify-content:center;gap:12px;flex-wrap:wrap}.btn{min-height:48px;padding:0 20px;display:inline-flex;align-items:center;justify-content:center;gap:9px;border:1px solid rgba(255,255,255,.16);font-size:12px;font-weight:800;letter-spacing:.045em;transition:.22s}.btn.primary{background:linear-gradient(90deg,#f03d5f,#508de9);border:0;color:#fff;box-shadow:0 12px 44px rgba(82,110,255,.22)}.btn:hover{transform:translateY(-2px)}.btn.secondary{background:rgba(255,255,255,.04);backdrop-filter:blur(8px)}
+    .scroll{position:absolute;z-index:2;bottom:24px;left:50%;transform:translateX(-50%);font:700 9px/1 ui-monospace,monospace;letter-spacing:.18em;color:#747d89}.scroll:after{content:"";display:block;width:1px;height:44px;margin:10px auto 0;background:linear-gradient(#8b94a0,transparent)}
+    .section{padding:112px max(24px,calc((100vw - var(--max))/2));position:relative}.section.dark{background:#0b0e13}.kicker{font:800 10px/1 ui-monospace,monospace;letter-spacing:.2em;color:var(--gold);text-transform:uppercase}.sectionTitle{margin:14px 0 18px;font-size:clamp(40px,5vw,66px);line-height:.96;letter-spacing:-.05em}.sectionLead{max-width:700px;margin:0;color:var(--muted);font-size:14px;line-height:1.85}.center{text-align:center;margin-left:auto;margin-right:auto}
+    .featureSplit{margin-top:48px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.feature{min-height:330px;padding:28px;border:1px solid var(--line);background:linear-gradient(145deg,#131a25,#0d1219);position:relative;overflow:hidden}.feature:after{content:"";position:absolute;width:180px;height:180px;border-radius:50%;right:-60px;top:-60px;background:radial-gradient(circle,rgba(255,255,255,.08),transparent 66%)}.featureNo{color:#697483;font:800 9px/1 ui-monospace,monospace;letter-spacing:.12em}.feature h3{margin:92px 0 13px;font-size:25px}.feature p{color:#96a0ad;font-size:13px;line-height:1.75;margin:0}.feature.red{box-shadow:inset 0 2px 0 rgba(255,73,104,.42)}.feature.blue{box-shadow:inset 0 2px 0 rgba(82,168,255,.42)}.feature.gold{box-shadow:inset 0 2px 0 rgba(255,217,120,.42)}
+    .pandoraGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:50px}.pandora{aspect-ratio:1.1/1;border:1px solid var(--line);position:relative;overflow:hidden;background:#10151d}.pandora:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 30%,var(--glow),transparent 42%),linear-gradient(to top,rgba(6,8,12,.94),rgba(6,8,12,.06));transition:.3s}.pandora:hover:before{transform:scale(1.05)}.pandoraIcon{position:absolute;left:24px;top:24px;width:52px;height:52px;border:1px solid rgba(255,255,255,.18);border-radius:50%;display:grid;place-items:center;font-size:24px;background:rgba(0,0,0,.22);backdrop-filter:blur(8px)}.pandoraText{position:absolute;left:24px;right:24px;bottom:23px}.pandoraText b{display:block;font-size:21px}.pandoraText span{color:#9ba4b0;font-size:11px;letter-spacing:.08em;text-transform:uppercase}.fire{--glow:rgba(255,76,45,.43)}.ice{--glow:rgba(92,209,255,.43)}.lightning{--glow:rgba(255,224,83,.42)}.dark{--glow:rgba(121,68,255,.42)}.machine{--glow:rgba(87,255,181,.33)}.light{--glow:rgba(255,245,185,.38)}
+    .arsenal{margin-top:50px;display:grid;grid-template-columns:1.2fr .8fr;gap:12px}.weaponHero{min-height:480px;border:1px solid var(--line);background:linear-gradient(rgba(8,10,14,.2),rgba(8,10,14,.85)),url('assets/weapon.jpg') center/cover no-repeat;position:relative}.weaponCopy{position:absolute;left:32px;bottom:30px;max-width:520px}.weaponCopy h3{font-size:38px;margin:10px 0}.weaponCopy p{color:#c1c8d2;font-size:13px;line-height:1.75}.weaponList{display:grid;grid-template-columns:1fr 1fr;gap:12px}.weapon{min-height:148px;border:1px solid var(--line);display:flex;align-items:flex-end;padding:20px;background:linear-gradient(145deg,#151a23,#0c1118);font-weight:800;letter-spacing:.04em}.weapon small{display:block;color:#7e8997;font-weight:700;font-size:9px;letter-spacing:.12em;margin-bottom:5px}
+    .multiPanel{margin-top:50px;border:1px solid var(--line);display:grid;grid-template-columns:.95fr 1.05fr;background:linear-gradient(120deg,#101722,#0b0f15)}.multiVisual{min-height:460px;position:relative;background:radial-gradient(circle at 35% 45%,rgba(255,73,104,.18),transparent 30%),radial-gradient(circle at 70% 55%,rgba(82,168,255,.18),transparent 30%),url('assets/multiplayer.jpg') center/cover no-repeat;border-right:1px solid var(--line)}.versus{position:absolute;inset:0;display:grid;place-items:center;font-size:88px;font-weight:900;font-style:italic;color:rgba(255,255,255,.08)}.multiList{padding:36px}.multiItem{padding:22px 0;border-bottom:1px solid var(--line)}.multiItem:last-child{border-bottom:0}.multiItem b{display:block;font-size:18px;margin-bottom:7px}.multiItem p{margin:0;color:#8f99a7;font-size:12px;line-height:1.7}
+    .gallery{margin-top:46px;display:grid;grid-template-columns:2fr 1fr 1fr;grid-auto-rows:240px;gap:10px}.shot{position:relative;border:1px solid var(--line);overflow:hidden;background-color:#10151d;background-size:cover;background-position:center}.shot:nth-child(1){grid-row:span 2;background-image:linear-gradient(to top,rgba(6,7,10,.5),rgba(6,7,10,.05)),url('assets/screenshot-1.jpg')}.shot:nth-child(2){background-image:linear-gradient(to top,rgba(6,7,10,.5),rgba(6,7,10,.05)),url('assets/screenshot-2.jpg')}.shot:nth-child(3){background-image:linear-gradient(to top,rgba(6,7,10,.5),rgba(6,7,10,.05)),url('assets/screenshot-3.jpg')}.shot:nth-child(4){background-image:linear-gradient(to top,rgba(6,7,10,.5),rgba(6,7,10,.05)),url('assets/screenshot-4.jpg')}.shot:nth-child(5){background-image:linear-gradient(to top,rgba(6,7,10,.5),rgba(6,7,10,.05)),url('assets/screenshot-5.jpg')}.shot span{position:absolute;left:16px;bottom:14px;color:#d2d8e1;font:800 8px/1 ui-monospace,monospace;letter-spacing:.14em}.shot:after{content:"IMAGE";position:absolute;inset:0;display:grid;place-items:center;color:rgba(255,255,255,.08);font-size:40px;font-weight:900;letter-spacing:.08em;z-index:-1}
+    .cta{padding:116px max(24px,calc((100vw - var(--max))/2));text-align:center;background:radial-gradient(circle at 50% 10%,rgba(255,217,120,.09),transparent 35%),#080a0e;border-top:1px solid var(--line)}.cta h2{font-size:clamp(48px,7vw,88px);margin:12px 0 18px;letter-spacing:-.06em}.cta p{color:#a2abb7;max-width:620px;margin:0 auto 28px;line-height:1.8}.footer{padding:30px max(24px,calc((100vw - var(--max))/2));border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:20px;color:#697382;font:700 9px/1.5 ui-monospace,monospace;letter-spacing:.08em}.lang{display:flex;gap:8px}.lang button{background:none;border:0;color:#7e8794;cursor:pointer;padding:0}.lang button.active{color:white}
+    .modal{position:fixed;z-index:100;inset:0;background:rgba(0,0,0,.86);display:none;align-items:center;justify-content:center;padding:24px}.modal.open{display:flex}.modalBox{width:min(1100px,100%);background:#080a0d;border:1px solid rgba(255,255,255,.18);position:relative}.modalBox video{width:100%;aspect-ratio:16/9;display:block;background:#050608}.close{position:absolute;z-index:2;right:10px;top:10px;width:40px;height:40px;border:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.55);color:#fff;cursor:pointer}.videoFallback{position:absolute;inset:0;display:grid;place-items:center;color:#7f8895;font-size:12px;letter-spacing:.1em;pointer-events:none}.toast{position:fixed;z-index:120;left:50%;bottom:24px;transform:translate(-50%,20px);opacity:0;background:#121720;border:1px solid rgba(255,255,255,.15);padding:13px 16px;color:#dce1e8;font-size:11px;transition:.25s}.toast.show{transform:translate(-50%,0);opacity:1}
+    [data-lang="ko"]{display:none}
+    @media(max-width:980px){.navlinks{display:none}.heroInner{grid-template-columns:1fr}.leftMeta,.rightMeta{display:none}.featureSplit{grid-template-columns:1fr}.pandoraGrid{grid-template-columns:1fr 1fr}.arsenal,.multiPanel{grid-template-columns:1fr}.multiVisual{border-right:0;border-bottom:1px solid var(--line)}.gallery{grid-template-columns:1fr 1fr}.shot:nth-child(1){grid-row:auto;grid-column:span 2;min-height:360px}.gallery .shot:last-child{grid-column:span 2}.footer{flex-direction:column}}
+    @media(max-width:620px){.nav{height:64px;padding:0 16px}.steamTop{display:none}.hero{padding:96px 16px 54px}.heroActions{flex-direction:column}.btn{width:100%}.section{padding:82px 16px}.pandoraGrid{grid-template-columns:1fr}.weaponList{grid-template-columns:1fr}.gallery{display:block}.shot{min-height:230px;margin-bottom:10px}.shot:nth-child(1){min-height:310px}.cta{padding:84px 16px}.footer{padding:26px 16px}}
+  </style>
+</head>
+<body>
+<div class="noise"></div>
+<nav class="nav">
+  <a class="logo" href="#home">PANDORA <span>BATTLE</span></a>
+  <div class="navlinks"><a href="#gameplay">GAME</a><a href="#pandora">PANDORA</a><a href="#arsenal">ARSENAL</a><a href="#multiplayer">MULTIPLAYER</a><a href="#media">MEDIA</a></div>
+  <a class="steamTop steam-link" href="#">STEAM ↗</a>
+</nav>
+
+<main>
+<section class="hero" id="home">
+  <div class="heroInner">
+    <div class="leftMeta"><span class="sideLabel">Online PvP Arena</span><span class="metaLine"></span><span class="sideLabel">Unreal Engine 5</span></div>
+    <div class="heroCenter">
+      <div class="sigil">✦</div>
+      <h1>Pandora<span>Battle</span></h1>
+      <p class="tagline" data-lang="en">Choose your weapon. Wield a Pandora. Outplay your rivals in fast, chaotic arena battles.</p>
+      <p class="tagline" data-lang="ko">무기를 선택하고 판도라의 힘을 다뤄, 빠르고 혼란스러운 아레나 전투에서 상대를 압도하세요.</p>
+      <div class="heroActions"><a class="btn primary steam-link" href="#">PLAY ON STEAM ↗</a><button class="btn secondary" id="trailerBtn">▶ WATCH TRAILER</button></div>
+    </div>
+    <div class="rightMeta"><span class="sideLabel">Multiplayer</span><span class="metaLine"></span><span class="sideLabel">Solo Developed</span></div>
+  </div>
+  <div class="scroll">SCROLL TO ENTER</div>
+</section>
+
+<section class="section dark" id="gameplay">
+  <div class="kicker">THE BATTLE BEGINS</div>
+  <h2 class="sectionTitle" data-lang="en">Fight fast.<br>Adapt faster.</h2><h2 class="sectionTitle" data-lang="ko">빠르게 싸우고,<br>더 빠르게 적응하세요.</h2>
+  <p class="sectionLead" data-lang="en">Pandora Battle is a fast-paced third-person PvP arena where weapons, positioning, timing, and powerful Pandora abilities collide.</p>
+  <p class="sectionLead" data-lang="ko">Pandora Battle은 무기, 포지셔닝, 타이밍, 강력한 판도라 능력이 맞부딪히는 빠른 템포의 3인칭 PvP 아레나 게임입니다.</p>
+  <div class="featureSplit">
+    <article class="feature red"><span class="featureNo">01 / COMBAT</span><h3 data-lang="en">Close the distance.</h3><h3 data-lang="ko">거리를 지배하세요.</h3><p data-lang="en">Dash, combo, block, pressure, and punish. Every weapon changes how you approach a fight.</p><p data-lang="ko">대시, 콤보, 방어와 압박. 무기에 따라 전투에 접근하는 방식이 달라집니다.</p></article>
+    <article class="feature gold"><span class="featureNo">02 / PANDORA</span><h3 data-lang="en">Break the rules.</h3><h3 data-lang="ko">판도를 뒤집으세요.</h3><p data-lang="en">Equip unique Pandora abilities and unleash elemental, mechanical, or dark powers at the right moment.</p><p data-lang="ko">판도라 능력을 장착하고, 적절한 순간에 원소·기계·어둠의 힘을 폭발시키세요.</p></article>
+    <article class="feature blue"><span class="featureNo">03 / ARENA</span><h3 data-lang="en">Read the battlefield.</h3><h3 data-lang="ko">전장을 읽으세요.</h3><p data-lang="en">Positioning matters. Control space, track enemies, and survive until your team takes the advantage.</p><p data-lang="ko">포지셔닝이 승부를 가릅니다. 공간을 장악하고 적의 움직임을 읽어 팀의 우위를 만드세요.</p></article>
+  </div>
+</section>
+
+<section class="section" id="pandora">
+  <div class="kicker center">CHOOSE YOUR PANDORA</div>
+  <h2 class="sectionTitle center" data-lang="en">Power changes<br>the way you fight.</h2><h2 class="sectionTitle center" data-lang="ko">힘이 바뀌면<br>전투 방식도 바뀝니다.</h2>
+  <p class="sectionLead center" data-lang="en">Each Pandora brings a different combat role, range, tempo, and threat. Build your own style around the powers you equip.</p><p class="sectionLead center" data-lang="ko">각 판도라는 서로 다른 역할, 사거리, 템포와 위협을 제공합니다. 장착한 힘을 중심으로 자신만의 전투 스타일을 만드세요.</p>
+  <div class="pandoraGrid">
+    <div class="pandora fire"><div class="pandoraIcon">🔥</div><div class="pandoraText"><b>Fire</b><span>Pressure · Burst</span></div></div>
+    <div class="pandora ice"><div class="pandoraIcon">❄</div><div class="pandoraText"><b>Ice</b><span>Control · Range</span></div></div>
+    <div class="pandora lightning"><div class="pandoraIcon">⚡</div><div class="pandoraText"><b>Lightning</b><span>Mobility · Impact</span></div></div>
+    <div class="pandora dark"><div class="pandoraIcon">◉</div><div class="pandoraText"><b>Darkness</b><span>Disrupt · Void</span></div></div>
+    <div class="pandora machine"><div class="pandoraIcon">⌬</div><div class="pandoraText"><b>Machine</b><span>Firepower · Zone</span></div></div>
+    <div class="pandora light"><div class="pandoraIcon">✦</div><div class="pandoraText"><b>Light</b><span>Support · Recovery</span></div></div>
+  </div>
+</section>
+
+<section class="section dark" id="arsenal">
+  <div class="kicker">CHOOSE YOUR WEAPON</div>
+  <h2 class="sectionTitle" data-lang="en">Different weapons.<br>Different answers.</h2><h2 class="sectionTitle" data-lang="ko">무기가 달라지면<br>해답도 달라집니다.</h2>
+  <div class="arsenal">
+    <div class="weaponHero"><div class="weaponCopy"><span class="kicker">ARSENAL</span><h3>Build your playstyle.</h3><p data-lang="en">Fight up close, keep your distance, burst from range, or mix weapon pressure with Pandora abilities.</p><p data-lang="ko">근접에서 압박하고, 거리를 유지하고, 원거리에서 화력을 쏟거나 판도라 스킬과 무기 전투를 조합하세요.</p></div></div>
+    <div class="weaponList"><div class="weapon"><div><small>FAST</small>Dagger</div></div><div class="weapon"><div><small>BALANCED</small>Sword</div></div><div class="weapon"><div><small>HEAVY</small>Greatsword</div></div><div class="weapon"><div><small>RANGED</small>Bow</div></div><div class="weapon"><div><small>FIREPOWER</small>Gun</div></div><div class="weapon"><div><small>IMPACT</small>Axe</div></div></div>
+  </div>
+</section>
+
+<section class="section" id="multiplayer">
+  <div class="kicker">MULTIPLAYER ARENA</div>
+  <h2 class="sectionTitle" data-lang="en">Enter. Fight.<br>Run it back.</h2><h2 class="sectionTitle" data-lang="ko">입장하고, 싸우고,<br>다시 도전하세요.</h2>
+  <div class="multiPanel"><div class="multiVisual"><div class="versus">VS</div></div><div class="multiList">
+    <div class="multiItem"><b>Quick Match</b><p data-lang="en">Jump into an available match quickly and get straight to the fight.</p><p data-lang="ko">참가 가능한 매치에 빠르게 들어가 전투를 시작하세요.</p></div>
+    <div class="multiItem"><b>Room List</b><p data-lang="en">Browse rooms, create your own match, and play with your preferred setup.</p><p data-lang="ko">방 목록을 확인하고 원하는 설정으로 직접 매치를 만들 수 있습니다.</p></div>
+    <div class="multiItem"><b>Steam Friends</b><p data-lang="en">Invite friends and join matches through Steam-integrated multiplayer features.</p><p data-lang="ko">Steam 연동 기능을 통해 친구를 초대하고 함께 플레이하세요.</p></div>
+    <div class="multiItem"><b>Training Mode</b><p data-lang="en">Experiment with weapons, skills, stats, and combat against configurable bots.</p><p data-lang="ko">무기, 스킬, 능력치를 시험하고 설정 가능한 봇과 자유롭게 전투를 연습하세요.</p></div>
+  </div></div>
+</section>
+
+<section class="section dark" id="media">
+  <div class="kicker center">MEDIA</div><h2 class="sectionTitle center">Arena snapshots.</h2><p class="sectionLead center" data-lang="en">Replace these slots with your latest screenshots and the site becomes production-ready without changing the layout.</p><p class="sectionLead center" data-lang="ko">이 영역에 최신 스크린샷만 넣으면 레이아웃을 바꾸지 않고 바로 실제 게임 사이트로 완성할 수 있습니다.</p>
+  <div class="gallery"><div class="shot"><span>SCREENSHOT 01</span></div><div class="shot"><span>SCREENSHOT 02</span></div><div class="shot"><span>SCREENSHOT 03</span></div><div class="shot"><span>SCREENSHOT 04</span></div><div class="shot"><span>SCREENSHOT 05</span></div></div>
+</section>
+
+<section class="cta"><div class="kicker">ENTER THE ARENA</div><h2>Pandora Battle</h2><p data-lang="en">Choose your weapon, master your Pandora, and take the fight online.</p><p data-lang="ko">무기를 선택하고 판도라를 익혀 온라인 아레나에 뛰어드세요.</p><a href="#" class="btn primary steam-link">PLAY / WISHLIST ON STEAM ↗</a></section>
+</main>
+
+<footer class="footer"><div>PANDORA BATTLE · MULTIPLAYER PVP ARENA · 2026</div><div class="lang"><button id="enBtn" class="active">EN</button><button id="koBtn">KO</button></div><div>© SOLO DEVELOPER</div></footer>
+
+<div class="modal" id="trailerModal"><div class="modalBox"><button class="close" id="closeTrailer">×</button><div class="videoFallback">ADD assets/trailer.mp4</div><video controls id="trailer"><source src="assets/trailer.mp4" type="video/mp4"></video></div></div>
+<div class="toast" id="toast">Steam store link will be added here.</div>
+
+<script>
+  const steamUrl='';
+  const toast=document.getElementById('toast');
+  document.querySelectorAll('.steam-link').forEach(a=>a.addEventListener('click',e=>{if(!steamUrl){e.preventDefault();toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2200)}else{a.href=steamUrl;a.target='_blank';}}));
+  const modal=document.getElementById('trailerModal'),trailer=document.getElementById('trailer');
+  document.getElementById('trailerBtn').onclick=()=>modal.classList.add('open');document.getElementById('closeTrailer').onclick=()=>{modal.classList.remove('open');trailer.pause()};modal.addEventListener('click',e=>{if(e.target===modal){modal.classList.remove('open');trailer.pause()}});
+  function lang(code){document.documentElement.lang=code;document.querySelectorAll('[data-lang]').forEach(el=>el.style.display=el.dataset.lang===code?'':'none');enBtn.classList.toggle('active',code==='en');koBtn.classList.toggle('active',code==='ko')}
+  const enBtn=document.getElementById('enBtn'),koBtn=document.getElementById('koBtn');enBtn.onclick=()=>lang('en');koBtn.onclick=()=>lang('ko');lang('en');
+</script>
+</body>
+</html>
