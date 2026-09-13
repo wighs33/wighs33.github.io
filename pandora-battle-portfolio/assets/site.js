@@ -6,5 +6,5 @@ window.addEventListener('message', event => {
  const frame = document.getElementById('class-map-frame');
  if (!frame || event.origin !== location.origin || event.source !== frame.contentWindow || event.data?.type !== 'pandora-atlas-height') return;
  const height = event.data.height;
- if (Number.isFinite(height) && height >= 500 && height <= 2400) frame.style.height = Math.ceil(height) + 'px';
+ if (Number.isFinite(height) && height >= 500 && height <= 4800) frame.style.height = Math.ceil(height) + 'px';
 });

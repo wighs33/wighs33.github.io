@@ -1,330 +1,190 @@
-/* Static C++ source graph. No external runtime, tracking, or generated image. */
+/* Curated semantic diagrams. Plain DOM, explicit arrows, no external runtime. */
 (() => {
   'use strict';
   const $ = id => document.getElementById(id);
   const data = window.PANDORA_CLASS_MAP;
-  if (!data || !data.nodes.length) {
-    $('source-summary').textContent = '데이터를 불러오지 못했습니다. 아래 전체 클래스 링크 목록을 이용해 주세요.';
-    return;
-  }
+  if (!data?.nodes?.length) { $('source-summary').textContent='관계도 데이터를 읽지 못했습니다. 아래 핵심 클래스 링크 목록을 이용해 주세요.'; return; }
   const params = new URLSearchParams(location.search);
   if (params.get('embed') === '1') document.documentElement.classList.add('embedded');
-  const NS = 'http://www.w3.org/2000/svg';
-  const W = 350, H = 70, STEP = 96;
-  const byId = new Map(data.nodes.map(n => [n.id, n]));
-  const initial = data.nodes.find(n => n.name === params.get('class')) || data.nodes.find(n => n.name === 'APdPlayerState') || data.nodes[0];
-  const state = {selected: initial.id, mode: params.get('view') === 'all' ? 'all' : 'focus', enabled: new Set(['inheritance', 'member', 'signature'])};
-  const stage = $('graph-stage'), svg = $('graph'), world = $('graph-world');
-  const camera = {x: 0, y: 0, scale: 1};
-  let positions = new Map(), visible = [], visibleEdges = [], nodeElements = new Map(), edgeElements = [];
-  let bounds = {x:0,y:0,width:1000,height:600};
-  let searchTimer, resizeTimer, pointer = null, suppressClickUntil = 0;
-  const labelOrigin = {game:'게임', plugin:'외부 플러그인', editor:'에디터'};
-  const number = value => value.toLocaleString('ko-KR');
-  const groups = [...new Set(data.nodes.map(n => n.group))].sort((a,b) => a.localeCompare(b));
-  function el(tag, text, className) {
-    const node = document.createElement(tag);
-    if (text !== undefined) node.textContent = text;
-    if (className) node.className = className;
-    return node;
+  const byName = new Map(data.nodes.map(n=>[n.name,n]));
+  const byEdge = new Map(data.edges.map(e=>[e.id,e]));
+  const categories = new Map(data.categories.map(c=>[c.id,c]));
+  const start = byName.get(params.get('class'));
+  const state = {selected:start?.name || 'APdPlayerState', category:start?.category || 'pandora', mode:start?'focus':'system', journey:'all', edge:null};
+  const pad = n => String(n).padStart(3,'0');
+  const cardData = {
+    APdPlayerState:['ASC·AttributeSet → 능력과 실제 수치','Pandora·Tree·Inventory → 보유와 성장'],
+    UPandoraComponent:['보유 여부·현재 선택·방향별 슬롯','부여한 Ability 핸들 추적'],
+    UPandoraDefinition:['이름·무기 조건·단계별 비용·선행 조건','Skill[] → 슬롯별 SkillDefinition'],
+    USkillDefinition:['ManaCost · Damage · Time → 비용·피해·시간','AbilitiesToGrant → 실행할 능력 클래스'],
+    UPandoraTreeComponent:['GrantedPandoras → 판도라별 현재 Level','PointsAvailable → 남은 성장 포인트'],
+    UPandoraSkillSource:['출처 판도라·스킬 에셋·슬롯 인덱스','부여 시 레벨·로드아웃 방향'],
+    UPdAbilitySystemComponent:['능력·효과·입력 관리자','SkillSource 복제 목록·발동 대기'],
+    UPdGameplayAbility:['비용·이동·연출 관리자와 버프 핸들','Spec.SourceObject → 스킬 출처 조회'],
+    UBasicAttributeSet:['체력·마나·스태미나와 최대치','레벨·경험치·공격·방어 속성'],
+    UInventoryComponent:['아이템 목록·장착/퀵슬롯 GUID','네트워크 복제 항목'],
+    UItemInstance:['공유 ItemDefinition + 개별 ItemId','수량·강화 단계·강화 스탯'],
+    UItemDefinition:['기본 스탯·소모 효과·상점 설정','WeaponData → 장착·공격·투사체 규격'],
+    UPdSaveGame:['판도라 ID별 레벨·방향별 장착 ID','골드·통계·스킨·매치 기록'],
+    UPlayerProfileSubsystem:['플레이어 ID별 SaveGame·스냅샷','저장할 ID·진행 중 ID·재시도'],
+    UPandoraDescriptionWidget:['PandoraDefinition + Tree → 설명 구성','DescriptionViewModel → 화면 표시값']
+  };
+  function el(tag,text,cls) { const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n; }
+  function external(url,text,cls) { const a=el('a',text,cls);a.href=url;a.target='_blank';a.rel='noopener noreferrer';return a; }
+  function button(text,action,cls) {const b=el('button',text,cls);b.type='button';b.addEventListener('click',action);return b;}
+  function linkedEdges(name) { return data.edges.filter(e=>e.source===name || e.target===name); }
+  function updateURL() { const q=new URLSearchParams(location.search);q.set('class',state.selected);history.replaceState(null,'',`${location.pathname}?${q}${location.hash}`); }
+  function select(name,{focus=false,scroll=false,edge=null}={}) {
+    if(!byName.has(name))return;
+    state.selected=name;state.edge=edge;
+    if(focus) {state.mode='focus';state.category=byName.get(name).category;state.journey='all';renderCategories();}
+    renderDiagram();renderInspector();updateURL();
+    if(scroll){$('inspector').scrollIntoView({block:'nearest'});$('selected-name').focus({preventScroll:true});}
   }
-  function se(tag, attrs = {}, text) {
-    const node = document.createElementNS(NS, tag);
-    for (const [key,value] of Object.entries(attrs)) node.setAttribute(key,String(value));
-    if (text !== undefined) node.textContent = text;
-    return node;
+  function renderCategories() {
+    $('categories').replaceChildren(...data.categories.map((c,i)=>{
+      const b=button('',()=>{
+        state.category=c.id;state.mode='system';state.journey='all';state.edge=null;
+        state.selected=data.nodes.find(n=>n.category===c.id).name;
+        $('search').value='';renderSearch();renderCategories();renderDiagram();renderInspector();updateURL();
+      },'category-button');
+      b.setAttribute('aria-pressed',String(c.id===state.category));
+      b.append(el('b',String(i+1).padStart(2,'0')),el('span',c.title),el('small',`${c.names.length}`));
+      return b;
+    }));
+    const c=categories.get(state.category);
+    $('system-number').textContent=`SYSTEM ${String(data.categories.indexOf(c)+1).padStart(2,'0')} / 09 · ${c.names.length} CORE CLASSES`;
+    $('system-title').textContent=c.title;$('system-intro').textContent=c.intro;
+    $('pandora-guide').hidden=c.id!=='pandora';
   }
-  function link(node, label, className) {
-    const a = el('a', label, className);
-    a.href = node.url; a.target = '_blank'; a.rel = 'noopener noreferrer';
-    return a;
+  function nodeCard(name) {
+    const n=byName.get(name);
+    const card=el('article',undefined,'flow-node'+(n.storage==='설정 Data Asset'?' is-config':'')+(name===state.selected?' is-selected':''));
+    card.dataset.name=name;
+    const a=external(n.url,undefined,'node-source');a.setAttribute('aria-label',`${name} GitHub 헤더 열기 (새 탭)`);
+    const top=el('span',undefined,'node-top');top.append(el('span',`#${pad(n.rank)}`,'rank'),el('span',`${n.storage} ↗`));
+    a.append(top,el('span',n.role,'node-role'),el('span',name,'node-name'));
+    const lines=cardData[name] || n.highlights.slice(0,2).map(h=>h.meaning);
+    if(!lines.length)lines.push('추가 저장 필드 없음 · 호출 인자/공통 기능 사용');
+    lines.forEach(line=>a.append(el('span',line,'node-data')));
+    const detail=button('데이터·관계 보기 ↘',()=>select(name,{scroll:true}),'node-detail');detail.setAttribute('aria-label',`${name} 데이터와 관계 보기`);
+    card.append(a,detail);return card;
   }
-  function fillGroups() {
-    const previous = $('group').value;
-    $('group').replaceChildren(new Option('전체 영역', 'all'));
-    for (const group of groups) {
-      const count = data.nodes.filter(n => n.group === group && ($('origin').value === 'all' || n.origin === $('origin').value)).length;
-      if (count) $('group').add(new Option(`${group} (${count})`,group));
-    }
-    if ([...$('group').options].some(o => o.value === previous)) $('group').value = previous;
+  function edgeButton(id) {
+    const e=byEdge.get(id);
+    const b=button('',()=>select(e.source,{scroll:true,edge:id}),`flow-edge ${e.kind}`);
+    b.dataset.edge=id;b.title=e.detail;b.setAttribute('aria-label',`${e.source} → ${e.target}: ${e.label}. 관계 설명 보기`);
+    b.append(el('span',e.label,'edge-label'),el('span',e.payload,'edge-payload'));
+    return b;
   }
-  const baseNodes = () => data.nodes.filter(n => ($('origin').value === 'all' || n.origin === $('origin').value)
-    && ($('group').value === 'all' || n.group === $('group').value) && ($('kind').value === 'all' || n.kind === $('kind').value));
-  function matching(nodes) {
-    const words = $('search').value.trim().toLowerCase().split(/\s+/).filter(Boolean);
-    return nodes.filter(n => words.every(word => `${n.qualified} ${n.path}`.toLowerCase().includes(word)));
-  }
-  function clearFilters() {
-    $('search').value = ''; $('origin').value = 'all'; fillGroups(); $('group').value = 'all'; $('kind').value = 'all';
-  }
-  function choose(id, reset = false) {
-    if (!byId.has(id)) return;
-    clearTimeout(searchTimer);
-    if (reset) {clearFilters();$('direction').value='outgoing';}
-    else if (!matching([byId.get(id)]).length) $('search').value='';
-    state.selected = id; state.mode = 'focus'; render();
-  }
-  function renderList(matches) {
-    $('list-count').textContent = `${number(matches.length)} / ${number(data.nodes.length)}`;
-    const fragment = document.createDocumentFragment();
-    const sorted = [...matches].sort((a,b) => a.qualified.localeCompare(b.qualified));
-    for (const node of sorted) {
-      const row = el('div', undefined, 'class-row' + (node.id === state.selected ? ' selected' : ''));
-      const source = link(node, undefined);
-      source.title = `${node.qualified} — ${node.path}:${node.line} (새 탭)`;
-      source.append(el('strong', node.qualified + ' ↗'), el('small', `${node.group} · ${node.kind}${node.implementation ? ' · CPP' : ''}`));
-      const button = el('button', '◎', 'relation-button'); button.type = 'button';
-      button.setAttribute('aria-label', `${node.qualified} 관계 보기`);
-      button.title = `${node.qualified} 관계 보기`;
-      button.addEventListener('click', () => choose(node.id));
-      row.append(source,button); fragment.append(row);
-    }
-    if (!matches.length) fragment.append(el('p','검색 결과가 없습니다. 검색어 또는 필터를 바꿔 주세요.','list-empty'));
-    const scroll = $('class-list').scrollTop;
-    $('class-list').replaceChildren(fragment); $('class-list').scrollTop = scroll;
-  }
-  function renderSelection() {
-    const node = byId.get(state.selected), detail = $('selection');
-    detail.replaceChildren();
-    if (!node || !visible.length) { detail.append(el('p','클래스를 찾아 ◎ 버튼으로 관계를 살펴보세요.')); return; }
-    detail.append(el('p','SELECTED TYPE','eyebrow'),el('h2',node.qualified));
-    detail.append(el('p',`${labelOrigin[node.origin]} · ${node.kind} · ${node.group}`));
-    detail.append(el('p',`${node.path}:${node.line}`));
-    if (node.bases.length) detail.append(el('p',`부모 타입: ${node.bases.join(', ')}`));
-    detail.append(link(node, node.implementation ? 'CPP 선언 열기 ↗' : 'GitHub 헤더 열기 ↗', 'source-link'));
-  }
-  function positionFocus(nodes, edges) {
-    positions = new Map();
-    const direction=$('direction').value;
-    if (direction!=='both') {
-      const others=nodes.filter(n=>n.id!==state.selected);
-      const columns=Math.min(stage.clientWidth<550?1:3,Math.max(1,others.length));
-      const rows=Math.ceil(others.length/columns),width=columns*(W+32)-32;
-      const selectedY=direction==='incoming'?rows*STEP+90:0;
-      positions.set(state.selected,{x:(width-W)/2,y:selectedY});
-      others.forEach((node,i)=>positions.set(node.id,{x:(i%columns)*(W+32),y:Math.floor(i/columns)*STEP+(direction==='incoming'?0:160)}));
-      $('group-layer').replaceChildren(se('text',{x:(width-W)/2,y:selectedY-26,class:'column-label'},'SELECTED / 선택 클래스'));
-      return;
-    }
-    const incoming = new Set(edges.filter(e => e.target === state.selected).map(e => e.source));
-    const outgoing = new Set(edges.filter(e => e.source === state.selected).map(e => e.target));
-    const left = nodes.filter(n => n.id !== state.selected && incoming.has(n.id) && !outgoing.has(n.id));
-    const right = nodes.filter(n => n.id !== state.selected && !left.includes(n));
-    const slots = Math.max(1,Math.min(8,Math.max(left.length,right.length)));
-    const centerY = ((slots-1)*STEP)/2;
-    positions.set(state.selected,{x:0,y:centerY});
-    function side(list, direction) {
-      const columns = Math.max(1,Math.ceil(list.length/8));
-      const rows = Math.ceil(list.length/columns);
-      list.forEach((node,i) => positions.set(node.id,{x:direction*(Math.floor(i/rows)+1)*(W+150),y:(i%rows)*STEP + (slots-rows)*STEP/2}));
-    }
-    side(left,-1); side(right,1);
-    const groupLayer = $('group-layer'); groupLayer.replaceChildren();
-    if (left.length) groupLayer.append(se('text',{x:-W-150,y:-38,class:'column-label'},'REFERENCED BY / 이 타입을 참조'));
-    groupLayer.append(se('text',{x:0,y:centerY-28,class:'column-label'},'SELECTED / 선택 클래스'));
-    if (right.length) groupLayer.append(se('text',{x:W+150,y:-38,class:'column-label'},'REFERENCES / 참조하는 타입'));
-  }
-  function positionAll(nodes) {
-    positions = new Map();
-    const groupLayer = $('group-layer'); groupLayer.replaceChildren();
-    const order = ['Mode','Character','Component','AbilitySystem','Pandora','Definition','UI','GameFeature','AI'];
-    const activeGroups = groups.filter(group => nodes.some(n => n.group === group)).sort((a,b) => {
-      const ai=order.indexOf(a),bi=order.indexOf(b);
-      return (ai<0?99:ai)-(bi<0?99:bi)||a.localeCompare(b);
+  function renderDiagram() {
+    const c=categories.get(state.category),focus=state.mode==='focus';
+    $('system-view').setAttribute('aria-pressed',String(!focus));$('focus-view').setAttribute('aria-pressed',String(focus));
+    $('journey').parentElement.hidden=focus;$('direction-label').hidden=!focus;
+    $('journey').replaceChildren(new Option(`모든 흐름 (${c.flows.length})`,'all'),...c.flows.map((f,i)=>new Option(f.title,String(i))));
+    $('journey').value=state.journey;
+    let flows;
+    if(focus) {
+      const direction=$('direction').value;
+      const edges=linkedEdges(state.selected).filter(e=>direction==='both'||(direction==='outgoing'?e.source===state.selected:e.target===state.selected));
+      flows=edges.map((e,i)=>({title:`${String(i+1).padStart(2,'0')} · ${e.label}`,explanation:e.detail,nodes:[e.source,e.target],edges:[e.id]}));
+    } else flows=c.flows.filter((_,i)=>state.journey==='all'||String(i)===state.journey);
+    const graph=$('diagram'),scroll=graph.scrollTop;
+    const lanes=flows.map(f=>{
+      const lane=el('section',undefined,'flow-lane');const heading=el('div',undefined,'flow-heading');
+      heading.append(el('h3',f.title),el('p',f.explanation));
+      const track=el('div',undefined,'flow-track');track.setAttribute('role','group');track.setAttribute('aria-label',f.nodes.join(' → '));
+      f.nodes.forEach((name,i)=>{if(i)track.append(edgeButton(f.edges[i-1]));track.append(nodeCard(name));});
+      lane.append(heading,track);return lane;
     });
-    const columnCount = activeGroups.length > 8 ? 4 : activeGroups.length > 2 ? 2 : 1;
-    const heights = Array(columnCount).fill(0), boxW = W*2+68;
-    for (const group of activeGroups) {
-      const list = nodes.filter(n => n.group === group);
-      const column = heights.indexOf(Math.min(...heights));
-      const x = column*(boxW+70),y=heights[column];
-      const height = Math.ceil(list.length/2)*STEP+74;
-      groupLayer.append(se('rect',{x,y,width:boxW,height,rx:10,class:'group-box'}));
-      groupLayer.append(se('text',{x:x+24,y:y+34,class:'group-label'},group));
-      groupLayer.append(se('text',{x:x+24,y:y+55,class:'group-subtitle'},`${labelOrigin[list[0].origin]} · ${list.length} TYPES`));
-      list.forEach((node,i) => positions.set(node.id,{x:x+24+(i%2)*(W+20),y:y+80+Math.floor(i/2)*STEP}));
-      heights[column] += height+70;
+    graph.replaceChildren(...lanes);
+    if(!flows.length)graph.append(el('p','이 방향에서 선정한 관계가 없습니다. 양방향 또는 기능별 관계도를 선택해 주세요.','empty'));
+    graph.scrollTop=scroll;
+    const count=new Set(flows.flatMap(f=>f.nodes)).size;
+    $('graph-status').textContent=`${focus?'선택 클래스 연결':'기능별 관계도'} · ${count}개 클래스 (연결된 다른 영역 포함) · ${flows.length}개 흐름`;
+  }
+  function declaration(field) {
+    const wrapper=el('div',undefined,'declaration');
+    const source=external(field.url);source.append(el('code',field.declaration+' ↗'));wrapper.append(source);
+    for(const s of field.schemas) {
+      const d=el('details',undefined,'nested-schema');d.append(el('summary',`${s.name} · 내부 데이터 ${s.fields.length}개`));
+      d.append(external(s.url,'구조체 선언 ↗'));
+      s.fields.forEach(f=>d.append(declaration(f)));wrapper.append(d);
     }
+    return wrapper;
   }
-  function edgePath(edge, offset) {
-    const a = positions.get(edge.source), b = positions.get(edge.target);
-    const dx = (b.x+W/2)-(a.x+W/2),dy=(b.y+H/2)-(a.y+H/2);
-    if (Math.abs(dx) >= W/2) {
-      const startX=dx>0?a.x+W:a.x,endX=dx>0?b.x:b.x+W;
-      const startY=a.y+H/2+offset,endY=b.y+H/2+offset;
-      const curve=Math.max(40,Math.abs(endX-startX)*.48)*(dx>0?1:-1);
-      return `M${startX},${startY} C${startX+curve},${startY} ${endX-curve},${endY} ${endX},${endY}`;
+  function referenceNames(fields) {
+    const found=new Set();
+    function visit(f){f.references.forEach(n=>found.add(n));f.schemas.forEach(s=>s.fields.forEach(visit));}
+    fields.forEach(visit);return [...found];
+  }
+  function renderInspector() {
+    const n=byName.get(state.selected);
+    $('selected-meta').textContent=`#${pad(n.rank)} · ${n.role} · ${n.storage}`;
+    $('selected-name').textContent=n.name;$('selected-purpose').textContent=n.purpose;
+    $('selected-source').href=n.url;
+    const target=$('field-details');target.replaceChildren();target.scrollTop=0;
+    target.append(el('p','아래는 헤더의 실제 필드입니다. 선언에 나온 숫자는 C++ 기본값이며, Data Asset에 설정된 실제 콘텐츠 값과 다를 수 있습니다.','data-note'));
+    for(const h of n.highlights) {
+      const group=el('div',undefined,'field-group');group.append(el('p',h.meaning));
+      const keys=el('div',undefined,'field-keys');h.fields.forEach(f=>keys.append(external(f.url,f.key+' ↗')));group.append(keys);
+      const raw=el('details');raw.append(el('summary','실제 선언과 하위 데이터 펼치기'));h.fields.forEach(f=>raw.append(declaration(f)));group.append(raw);
+      const refs=referenceNames(h.fields).filter(name=>name!==n.name);
+      refs.forEach(name=>{
+        const ref=byName.get(name),preview=el('div',undefined,'reference-preview');
+        preview.append(el('b',`${name} · ${ref.role}`),el('p',ref.purpose),button(`${ref.role} 데이터 보기 →`,()=>select(name,{scroll:false})));
+        group.append(preview);
+      });
+      target.append(group);
     }
-    const startY=dy>0?a.y+H:a.y,endY=dy>0?b.y:b.y+H;
-    const startX=a.x+W/2+offset,endX=b.x+W/2+offset,curve=Math.max(30,Math.abs(endY-startY)*.45)*(dy>0?1:-1);
-    return `M${startX},${startY} C${startX},${startY+curve} ${endX},${endY-curve} ${endX},${endY}`;
+    if(!n.fields.length)target.append(el('p','이 클래스가 추가로 선언한 저장 필드는 없습니다. 부모의 상태 또는 호출 시 전달된 인자를 사용합니다.','data-note'));
+    const all=el('details',undefined,'field-group');all.append(el('summary',`이 클래스의 직접 선언 필드 전체 (${n.fields.length})`));n.fields.forEach(f=>all.append(declaration(f)));target.append(all);
+    const relations=$('relation-details');relations.replaceChildren();relations.scrollTop=0;
+    const linked=linkedEdges(n.name).sort((a,b)=>(b.id===state.edge)-(a.id===state.edge));
+    linked.forEach(e=>{
+      const other=byName.get(e.source===n.name?e.target:e.source),card=el('article',undefined,'relation-card'+(e.id===state.edge?' is-active':''));
+      card.dataset.edge=e.id;
+      card.append(el('span',`${e.source===n.name?'이 클래스 → 대상':'다른 클래스 → 이 클래스'} · ${e.label}`,'relationship-kind'));
+      card.append(el('div',`${e.source} → ${e.target}`,'relationship-names'),el('p',e.payload,'relation-payload'),el('p',e.detail));
+      const actions=el('div',undefined,'relation-actions');actions.append(button(`${other.role} 데이터 →`,()=>select(other.name,{scroll:false})),external(e.evidence.url,`근거 소스 L${e.evidence.line} ↗`));card.append(actions);relations.append(card);
+    });
+    if(!linked.length)relations.append(el('p','선정 범위에서 확인한 직접 관계가 없습니다. 클래스 헤더의 실제 선언을 확인해 주세요.','data-note'));
+    document.querySelectorAll('.class-list button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.name===n.name)));
   }
-  function highlight(id) {
-    const related = new Set([id]);
-    for (const edge of visibleEdges) if (edge.source===id||edge.target===id) { related.add(edge.source); related.add(edge.target); }
-    for (const [key,node] of nodeElements) node.classList.toggle('is-muted',Boolean(id)&&!related.has(key));
-    for (const {node,edge} of edgeElements) {
-      const connected=edge.source===id||edge.target===id;
-      node.classList.toggle('is-highlighted',Boolean(id)&&connected);
-      node.classList.toggle('is-muted',Boolean(id)&&!connected);
-    }
+  function renderSearch() {
+    const query=$('search').value.trim().toLocaleLowerCase(),out=$('search-results');out.replaceChildren();out.hidden=!query;
+    if(!query){$('search-status').textContent='';return;}
+    const words=query.split(/\s+/);
+    const matches=data.nodes.filter(n=>{
+      const text=[n.name,n.role,n.purpose,n.storage,n.path,...n.highlights.flatMap(h=>[h.meaning,...h.keys])].join(' ').toLocaleLowerCase();
+      return words.every(word=>text.includes(word));
+    });
+    $('search-status').textContent=`핵심 100개 중 ${matches.length}개 검색됨`;
+    if(!matches.length)out.append(el('p','검색 결과가 없습니다. 클래스 이름이나 필드 이름, 다른 검색어를 입력해 주세요.','empty'));
+    matches.forEach(n=>{
+      const b=button('',()=>{select(n.name,{focus:true});$('search').value='';renderSearch();$('diagram').scrollTop=0;},'search-result');
+      b.append(el('strong',`#${pad(n.rank)} ${n.name}`),el('small',`${n.role} · ${n.storage}`));out.append(b);
+    });
   }
-  function draw() {
-    nodeElements = new Map(); edgeElements=[];
-    $('edge-layer').replaceChildren(); $('node-layer').replaceChildren();
-    const edgeFragment=document.createDocumentFragment(),nodeFragment=document.createDocumentFragment();
-    for (const edge of visibleEdges) {
-      const offset={inheritance:-9,member:0,signature:9}[edge.kind];
-      const path=se('path',{d:edgePath(edge,offset),class:`edge ${edge.kind}`,'marker-end':`url(#arrow-${edge.kind})`});
-      edgeFragment.append(path); edgeElements.push({node:path,edge});
-    }
-    for (const node of visible) {
-      const pos=positions.get(node.id);
-      const g=se('g',{class:'node'+(node.id===state.selected?' is-selected':''),transform:`translate(${pos.x},${pos.y})`,'data-kind':node.kind,'data-origin':node.origin,'data-name':node.name});
-      const a=se('a',{href:node.url,target:'_blank',rel:'noopener noreferrer','aria-label':`${node.qualified} ${node.implementation?'CPP':'헤더'} 열기 (새 탭)`});
-      a.append(se('title',{},`${node.qualified}\n${node.path}:${node.line}\n클릭하여 GitHub 선언 열기`));
-      a.append(se('rect',{width:W,height:H,rx:6,class:'node-card'}),se('rect',{x:0,y:12,width:3,height:46,rx:1,class:'node-accent'}));
-      const name=se('text',{x:14,y:29,class:'node-name'},node.qualified);
-      // Long C++ names retain full spelling; fit within the source-link area.
-      if (node.qualified.length>29) { name.setAttribute('textLength','278'); name.setAttribute('lengthAdjust','spacingAndGlyphs'); }
-      a.append(name,se('text',{x:14,y:51,class:'node-meta'},`${node.kind.toUpperCase()} · ${node.group}${node.implementation?' · CPP':''}`),se('text',{x:W-25,y:27,class:'node-open'},'↗'));
-      g.append(a);
-      const focus=se('g',{class:'node-focus',role:'button',tabindex:0,'aria-label':`${node.qualified} 관계 보기`,transform:`translate(${W-38},${H-30})`});
-      focus.append(se('title',{},'이 타입의 관계 보기'),se('rect',{width:30,height:24,rx:3}),se('text',{x:15,y:18,'text-anchor':'middle'},'◎'));
-      focus.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();choose(node.id);});
-      focus.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();choose(node.id);}});
-      g.append(focus);g.addEventListener('pointerenter',()=>highlight(node.id));g.addEventListener('pointerleave',()=>highlight(null));
-      g.addEventListener('focusin',()=>highlight(node.id));g.addEventListener('focusout',()=>highlight(null));
-      nodeFragment.append(g);nodeElements.set(node.id,g);
-    }
-    $('edge-layer').append(edgeFragment);$('node-layer').append(nodeFragment);
-    if (positions.size) {
-      const all=[...positions.values()];
-      const minX=Math.min(...all.map(p=>p.x))-40,minY=Math.min(...all.map(p=>p.y))-95;
-      bounds={x:minX,y:minY,width:Math.max(...all.map(p=>p.x))+W+40-minX,height:Math.max(...all.map(p=>p.y))+H+65-minY};
-    } else bounds={x:0,y:0,width:1000,height:600};
-  }
-  function render() {
-    const eligible=baseNodes(),matches=matching(eligible),set=new Set(eligible.map(n=>n.id));
-    if (matches.length&&!matches.some(n=>n.id===state.selected)) {
-      const exact=matches.find(n=>n.name.toLowerCase()===$('search').value.trim().toLowerCase());
-      state.selected=(exact||matches[0]).id;
-    }
-    renderList(matches);
-    let edges=data.edges.filter(e=>state.enabled.has(e.kind)&&set.has(e.source)&&set.has(e.target));
-    if (!matches.length) {visible=[];edges=[];}
-    else if (state.mode==='focus') {
-      edges=edges.filter(e=>e.source===state.selected||e.target===state.selected);
-      if($('direction').value==='outgoing')edges=edges.filter(e=>e.source===state.selected);
-      if($('direction').value==='incoming')edges=edges.filter(e=>e.target===state.selected);
-      const near=new Set([state.selected,...edges.flatMap(e=>[e.source,e.target])]);
-      visible=eligible.filter(n=>near.has(n.id));
-    } else {
-      visible=matches;const ids=new Set(visible.map(n=>n.id));edges=edges.filter(e=>ids.has(e.source)&&ids.has(e.target));
-    }
-    visibleEdges=edges;
-    if (state.mode==='focus'&&visible.length) positionFocus(visible,visibleEdges);else positionAll(visible);
-    draw();frameView();renderSelection();
-    $('all-view').setAttribute('aria-pressed',String(state.mode==='all'));
-    $('focus-view').setAttribute('aria-pressed',String(state.mode==='focus'));
-    $('focus-view').disabled=!matches.length;
-    $('direction').disabled=state.mode==='all';
-    $('graph-empty').hidden=Boolean(visible.length);
-    $('graph-status').textContent=`표시 ${number(visible.length)}개 타입 · ${number(visibleEdges.length)}개 관계`;
-    for (const kind of ['inheritance','member','signature']) $('count-'+kind).textContent=number(visibleEdges.filter(e=>e.kind===kind).length);
-    const caption=$('stage-caption');caption.replaceChildren();
-    if (state.mode==='focus'&&visible.length) {
-      const directionLabel={outgoing:'참조하는 타입',incoming:'참조받는 타입',both:'양방향 직접 연결'}[$('direction').value];
-      caption.append(el('b',byId.get(state.selected).name),document.createTextNode(' · '+directionLabel));
-      if(stage.clientWidth<550&&visible.length>4)caption.append(el('div','드래그로 나머지 연결 탐색 · 화면 맞춤으로 전체 보기'));
-      if (!visibleEdges.length) caption.append(el('div','현재 조건에 해당하는 내부 타입 관계가 없습니다.'));
-    } else caption.textContent=visible.length?'전체 구조 · 영역별 배치 / 검색 또는 확대하여 탐색':'';
-    document.querySelectorAll('[data-entry]').forEach(b=>b.classList.toggle('active',byId.get(state.selected)?.name===b.dataset.entry&&state.mode==='focus'));
-  }
-  function applyCamera() {
-    world.setAttribute('transform',`translate(${camera.x},${camera.y}) scale(${camera.scale})`);
-    $('zoom-value').value=`${Math.round(camera.scale*100)}%`;
-  }
-  function fit() {
-    const width=stage.clientWidth,height=stage.clientHeight;
-    svg.setAttribute('viewBox',`0 0 ${width} ${height}`);
-    camera.scale=Math.min(1.2,(width-30)/bounds.width,(height-30)/bounds.height);
-    camera.x=(width-bounds.width*camera.scale)/2-bounds.x*camera.scale;
-    camera.y=(height-bounds.height*camera.scale)/2-bounds.y*camera.scale;
-    applyCamera();
-  }
-  function zoom(factor,x=stage.clientWidth/2,y=stage.clientHeight/2) {
-    const old=camera.scale;camera.scale=Math.max(.035,Math.min(2.5,old*factor));
-    camera.x=x-(x-camera.x)*camera.scale/old;camera.y=y-(y-camera.y)*camera.scale/old;applyCamera();
-  }
-  function frameView() {
-    fit();
-    // On a phone start at readable size; explicit Fit still shows every node.
-    if(state.mode==='focus'&&visible.length&&stage.clientWidth<550&&camera.scale<.78){
-      const selected=positions.get(state.selected);
-      camera.scale=Math.min(1,(stage.clientWidth-32)/W);
-      camera.x=stage.clientWidth/2-(selected.x+W/2)*camera.scale;
-      const selectedScreenY=$('direction').value==='incoming'?stage.clientHeight-130:70;
-      camera.y=selectedScreenY-selected.y*camera.scale;applyCamera();
-    }
-  }
-  $('search').addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>{$('class-list').scrollTop=0;render();},140);});
-  $('search').addEventListener('keydown',event=>{if(event.key==='Enter'){clearTimeout(searchTimer);state.mode='focus';render();}});
-  for (const id of ['origin','group','kind']) $(id).addEventListener('change',()=>{if(id==='origin')fillGroups();$('class-list').scrollTop=0;render();});
-  document.querySelectorAll('[data-edge]').forEach(input=>input.addEventListener('change',()=>{if(input.checked)state.enabled.add(input.dataset.edge);else state.enabled.delete(input.dataset.edge);render();}));
-  $('all-view').addEventListener('click',()=>{state.mode='all';render();});
-  $('focus-view').addEventListener('click',()=>{state.mode='focus';render();});
-  $('direction').addEventListener('change',render);
+  $('search').addEventListener('input',renderSearch);
+  $('journey').addEventListener('change',()=>{state.journey=$('journey').value;renderDiagram();$('diagram').scrollTop=0;});
+  $('direction').addEventListener('change',()=>{renderDiagram();$('diagram').scrollTop=0;});
+  $('system-view').addEventListener('click',()=>{state.mode='system';renderDiagram();$('diagram').scrollTop=0;});
+  function focusConnections(){state.mode='focus';state.edge=null;renderDiagram();$('diagram').scrollTop=0;$('diagram').scrollIntoView({block:'nearest'});}
+  $('focus-view').addEventListener('click',focusConnections);$('show-connections').addEventListener('click',focusConnections);
   $('reset').addEventListener('click',()=>{
-    clearTimeout(searchTimer);clearFilters();state.selected=initial.id;state.mode='focus';$('direction').value='outgoing';
-    document.querySelectorAll('[data-edge]').forEach(input=>{input.checked=true;state.enabled.add(input.dataset.edge);});render();
+    Object.assign(state,{category:'pandora',selected:'APdPlayerState',mode:'system',journey:'all',edge:null});
+    $('search').value='';$('direction').value='both';renderSearch();renderCategories();renderDiagram();renderInspector();$('diagram').scrollTop=0;updateURL();
   });
-  document.querySelectorAll('[data-entry]').forEach(button=>{
-    const node=data.nodes.find(n=>n.name===button.dataset.entry);
-    if(node)button.addEventListener('click',()=>choose(node.id,true));else button.hidden=true;
-  });
-  $('zoom-in').addEventListener('click',()=>zoom(1.35));$('zoom-out').addEventListener('click',()=>zoom(1/1.35));$('fit').addEventListener('click',fit);
-  stage.addEventListener('wheel',event=>{if(event.ctrlKey||event.metaKey){event.preventDefault();const box=stage.getBoundingClientRect();zoom(Math.exp(-event.deltaY*.002),event.clientX-box.left,event.clientY-box.top);}}, {passive:false});
-  stage.addEventListener('pointerdown',event=>{
-    if(event.button!==0||event.target.closest('.node-focus'))return;
-    pointer={id:event.pointerId,x:event.clientX,y:event.clientY,startX:camera.x,startY:camera.y,moved:false};
-  });
-  stage.addEventListener('pointermove',event=>{
-    if(!pointer||pointer.id!==event.pointerId)return;
-    const dx=event.clientX-pointer.x,dy=event.clientY-pointer.y;
-    if(!pointer.moved&&Math.hypot(dx,dy)<6)return;
-    if(!pointer.moved){pointer.moved=true;stage.setPointerCapture(event.pointerId);stage.classList.add('dragging');highlight(null);}
-    camera.x=pointer.startX+dx;camera.y=pointer.startY+dy;applyCamera();
-  });
-  function endPointer(event) {
-    if(!pointer||pointer.id!==event.pointerId)return;
-    if(pointer.moved)suppressClickUntil=performance.now()+250;
-    if(stage.hasPointerCapture(event.pointerId))stage.releasePointerCapture(event.pointerId);
-    pointer=null;stage.classList.remove('dragging');
-  }
-  stage.addEventListener('pointerup',endPointer);stage.addEventListener('pointercancel',endPointer);
-  stage.addEventListener('pointerleave',event=>{if(pointer&&!pointer.moved)endPointer(event);});
-  stage.addEventListener('click',event=>{if(performance.now()<suppressClickUntil){event.preventDefault();event.stopPropagation();}},true);
-  stage.addEventListener('keydown',event=>{
-    if(event.target!==stage&&event.target!==svg)return;
-    const moves={ArrowLeft:[65,0],ArrowRight:[-65,0],ArrowUp:[0,65],ArrowDown:[0,-65]};
-    if(moves[event.key]){event.preventDefault();camera.x+=moves[event.key][0];camera.y+=moves[event.key][1];applyCamera();}
-    else if(event.key==='+'||event.key==='='){event.preventDefault();zoom(1.35);}
-    else if(event.key==='-'){event.preventDefault();zoom(1/1.35);}
-    else if(event.key==='0'){event.preventDefault();fit();}
-  });
-  const summary=$('source-summary');summary.replaceChildren();
-  summary.append(el('b',number(data.meta.classes)),document.createTextNode(' 클래스 / '),el('b',number(data.meta.structs)),document.createTextNode(' 구조체'),el('br'),document.createTextNode(`${number(data.meta.headers)}개 헤더 · ${number(data.edges.length)}개 관계 · 플러그인·에디터 포함`));
-  $('total-count').textContent=number(data.nodes.length);
-  const revision=el('a',`${data.meta.commit.slice(0,7)} ↗`);revision.href=`https://github.com/${data.meta.repository}/tree/${data.meta.commit}`;revision.target='_blank';revision.rel='noopener noreferrer';
-  $('revision').append(document.createTextNode(`분석 소스: ${data.meta.repository} · ${data.meta.sourceDate.slice(0,10)} 커밋 `),revision,document.createTextNode(` · ${data.meta.headers}개 헤더 및 ${data.meta.implementations}개 구현 파일 검사.`));
-  fillGroups();render();
-  let lastWidth=stage.clientWidth;
-  new ResizeObserver(()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{
-    if(stage.clientWidth!==lastWidth){lastWidth=stage.clientWidth;render();}else frameView();
-  },100);}).observe(stage);
-  if (params.get('embed')==='1'&&parent!==window) {
-    const reportHeight=()=>parent.postMessage({type:'pandora-atlas-height',height:Math.ceil($('atlas').getBoundingClientRect().height)+2},location.origin);
-    new ResizeObserver(reportHeight).observe($('atlas')); reportHeight();
-  }
+  $('class-list').replaceChildren(...data.nodes.map(n=>{
+    const b=button('',()=>{select(n.name,{focus:true});$('diagram').scrollTop=0;$('diagram').scrollIntoView({block:'nearest'});});b.dataset.name=n.name;b.setAttribute('aria-pressed','false');
+    b.append(el('strong',`#${pad(n.rank)} ${n.name}`),el('small',`${n.role} · ${categories.get(n.category).title}`));return b;
+  }));
+  $('index-count').textContent='100 / 100';
+  $('source-summary').textContent=`100개 클래스 · ${data.edges.length}개 설명된 관계 · 9개 기능 영역`;
+  $('revision').append(el('span',`소스 기준: ${data.meta.sourceDate.slice(0,10)} · `),external(`https://github.com/wighs33/Pandora-Battle/tree/${data.meta.commit}`,data.meta.commit.slice(0,12)+' ↗'));
+  renderCategories();renderDiagram();renderInspector();
+  let reportedHeight=0,frame;
+  function reportHeight(){cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{const height=Math.ceil($('atlas').getBoundingClientRect().height)+2;if(height!==reportedHeight){reportedHeight=height;if(parent!==window)parent.postMessage({type:'pandora-atlas-height',height},location.origin);}});}
+  new ResizeObserver(reportHeight).observe($('atlas'));addEventListener('resize',reportHeight);reportHeight();
 })();

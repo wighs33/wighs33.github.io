@@ -1,39 +1,51 @@
-# Pandora Battle class atlas
+# Pandora Battle core class atlas
 
-The portfolio embeds `pandora-battle-portfolio/class-map.html`. The viewer uses
-native SVG and a generated static JavaScript data file, with no CDN dependency.
-`class-index.html` provides all source links without JavaScript.
+The portfolio embeds `pandora-battle-portfolio/class-map.html`. It presents 100
+selected C++ classes in nine systems. Each system uses small, connected diagrams
+with two or three blocks per lane. Repeated blocks refer to the same class; they
+make shared dependencies readable without crossing lines. A selected-class view
+shows incoming/outgoing connections among the same 100 classes.
 
-To update the source snapshot, use a clean checkout of the public
-`wighs33/Pandora-Battle` repository containing `Source` and the plugin sources:
+Class blocks link to commit-pinned GitHub header declarations. Their separate
+data buttons reveal Korean field explanations, actual declarations, nested
+struct schemas and previews of referenced class data. Arrows open explanations
+with source evidence. Static `class-index.html` provides all 100 header links.
+
+The source of the editorial selection is `core-class-selection.json`. Class
+roles and field meanings are in `core-class-content.py`; semantic runtime and
+projection relationships and reading lanes are in `core-class-flows.py`.
+`cpp-schema.py` contains the Unreal-aware C++ parsing utilities.
 
 ```sh
 python -m pip install tree-sitter==0.25.2 tree-sitter-cpp==0.23.4
 python tools/build-class-map.py /path/to/Pandora-Battle
 node tools/verify-class-map.mjs /path/to/Pandora-Battle
+node --check pandora-battle-portfolio/assets/class-map.js
 ```
 
-Also update the two summary counts in the portfolio homepage's `#classes`
-section if the source counts changed. No Unreal build or engine installation is
-needed. Source URLs use the analyzed commit and declaration line so links remain
-consistent with the displayed graph.
+`build-class-map.py` forwards to `build-core-class-map.py`; it cannot regenerate
+the previous 576-type map. Generation requires a clean source checkout. It
+checks all selected class definitions, field names, source evidence and per-map
+coverage. The generated data also includes direct field/base dependencies among
+the selected 100, available in focused view. No plugins, engine classes or
+independent struct nodes are added to meet the count.
 
-The parser collects named class/struct definitions from tracked C++ headers and
-implementation files. It masks Unreal annotation macros, comments and conditional
-directives while retaining source offsets. An independent lexical inventory
-checks for missing definitions; unresolved parser errors and ambiguous type
-references stop generation. Blueprint asset dependencies, macro-generated types,
-engine definitions, runtime calls and ownership are outside the graph's scope.
-Conditional branches are analyzed together. Implementation-local named types
-link to `.cpp`; all other nodes link to their headers.
+Priorities are a reading order, not performance measurements. Header defaults
+are distinguished from actual `.uasset` values. Field references are not called
+ownership without construction evidence. Dashed projection edges explicitly
+name the intermediary Widget/Builder; the Game Feature ordering edge represents
+a header-documented configuration guideline, not a verified asset sequence.
 
-Edges represent internal inheritance, member field types, or explicit function
-signature/alias types. Inline method bodies, comments, forward declarations and
-include directives do not create relationship edges. Third-party plugin types
-are explicitly tagged and filterable.
+Key regression checks cover PlayerState ownership, Definition → FSkill →
+SkillDefinition, Tree growth state, SkillSource registration and AbilitySpec
+SourceObject use, saved PrimaryAssetIds, and separation of StateTree and BT.
+Field/schema declarations and every source link are checked against the pinned
+checkout. All categories must include every one of their selected classes.
 
-Browser checks: initial focus, all-node view including isolated types, search by
-name/path, empty results, origin/group/kind/direction filters, relation toggles,
-source-link navigation, keyboard pan/zoom, desktop/mobile layout and iframe
-height. The viewer can be opened with `?view=all` or `?class=APdPlayerState`;
-`?embed=1` removes the standalone page heading.
+Browser verification covers the embedded and standalone routes, system selection,
+search (class/field/Korean description), empty results, data/reference drill-down,
+nested schemas, arrow explanations, incoming/outgoing views, real header-link
+navigation, and desktop/mobile overflow. The viewer uses plain DOM/CSS arrows
+without a CDN or external layout runtime. `?class=APdPlayerState` opens focused
+view; `?embed=1` omits standalone chrome. The iframe reports its height to a
+same-origin, exact-source-checked listener in `site.js`.

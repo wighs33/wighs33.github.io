@@ -1,0 +1,156 @@
+[
+  {
+    "id": "player",
+    "title": "플레이어와 데이터 기반",
+    "names": [
+      "APdPlayerState",
+      "APdPlayer",
+      "ACharacterBase",
+      "APdPlayerController",
+      "APdHUD",
+      "UContentDataSubsystem",
+      "UPlayerPawnDefinition",
+      "UCharacterBaseDefinition",
+      "UPlayerControllerDefinition",
+      "UPdGameInstanceDefinition",
+      "UControllerInputComponent",
+      "UControllerInputDefinition"
+    ]
+  },
+  {
+    "id": "pandora",
+    "title": "판도라 선택과 성장",
+    "names": [
+      "UPandoraComponent",
+      "UPandoraDefinition",
+      "UPandoraInstance",
+      "UPandoraSkillSource",
+      "FPandoraSkillBinder",
+      "UPandoraTreeComponent",
+      "USkillDefinition",
+      "USelectingPandoraAndWeaponComponent",
+      "ULevelingComponent",
+      "UStatUpgradeComponent",
+      "UStatUpgradeDefinition"
+    ]
+  },
+  {
+    "id": "combat",
+    "title": "GAS와 전투 실행",
+    "names": [
+      "UPdAbilitySystemComponent",
+      "UPdGameplayAbility",
+      "UBasicAttributeSet",
+      "UAbilityGrantAndInputManager",
+      "UAbilityCostAndCooldownManager",
+      "UAbilityAttributeManager",
+      "UAbilityPresentationManager",
+      "UCombatComponent",
+      "UAttackAbility",
+      "UProjectileAbility",
+      "AProjectileBase",
+      "UCharacterDeathComponent",
+      "UStatusEffectDefinition",
+      "UStatusEffectReplicationComponent"
+    ]
+  },
+  {
+    "id": "equipment",
+    "title": "아이템·장비·보상",
+    "names": [
+      "UInventoryComponent",
+      "UItemInstance",
+      "UItemDefinition",
+      "UEquipmentComponent",
+      "AWeaponBase",
+      "ASword",
+      "AGun",
+      "ABow",
+      "UPlayerRewardComponent",
+      "URewardDefinition",
+      "UDefaultPlayerProvisioner",
+      "UDefaultProvisionDefinition"
+    ]
+  },
+  {
+    "id": "experience",
+    "title": "Experience와 매치 진행",
+    "names": [
+      "AExperienceGameMode",
+      "AExperienceGameState",
+      "UExperienceManagerComponent",
+      "UExperienceDefinition",
+      "UExperienceMatchFlowComponent",
+      "UExperienceSpawnComponent",
+      "UExperiencePlayerProvisioningComponent",
+      "UPlayerMatchComponent",
+      "UMatchRuleDefinition",
+      "ULevelDefinition",
+      "UGameFeatureAction_AddAbilities",
+      "UGameFeatureAction_AddActorExtension"
+    ]
+  },
+  {
+    "id": "online",
+    "title": "온라인 세션과 로비",
+    "names": [
+      "UOnlineSessionsSubsystem",
+      "UControllerSessionComponent",
+      "ULobbyRuntimeSubsystem",
+      "ULobbyMatchCoordinator",
+      "ULobbyTravelCoordinator",
+      "ALobbyGameMode",
+      "ALobbyGameState",
+      "ULobbyConfigurationComponent",
+      "ULobbyPlayerStateComponent",
+      "ULobbyWidget"
+    ]
+  },
+  {
+    "id": "ai",
+    "title": "적과 AI 행동",
+    "names": [
+      "AEnemyBase",
+      "AMonsterCharacter",
+      "AMonsterAIController",
+      "UEnemyBaseDefinition",
+      "UEnemyCombatComponent",
+      "UEnemyTrainingBotComponent",
+      "UBTService_UpdateEnemyTarget",
+      "UBTTask_EnemyAttack"
+    ]
+  },
+  {
+    "id": "save",
+    "title": "프로필 저장과 복원",
+    "names": [
+      "UPlayerProfileSubsystem",
+      "UPdSaveGame",
+      "UProfileSaveEnvelope",
+      "UControllerProfileSyncComponent",
+      "UExperiencePlayerProfileService"
+    ]
+  },
+  {
+    "id": "ui",
+    "title": "데이터를 화면으로 표현",
+    "names": [
+      "UUiSubsystem",
+      "UHudUiRouter",
+      "UPlayerHudWidget",
+      "UInfoLoadoutStore",
+      "UInfoUiPresenter",
+      "UInfoPandoraTabPresenter",
+      "UPandoraWidgetViewModel",
+      "UPandoraDescriptionViewModel",
+      "UPandoraTreeViewModel",
+      "UHealthBarViewModel",
+      "UAbilitiesBarWidget",
+      "UAbilitySlotWidget",
+      "UWidgetClassDefinition",
+      "UShopWidget",
+      "UShopCatalogDefinition",
+      "UPandoraDescriptionWidget"
+    ]
+  }
+]
