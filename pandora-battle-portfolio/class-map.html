@@ -1,38 +1,34 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#080b0d">
-  <title>Pandora Battle · 핵심 100 클래스 관계도</title>
-  <meta name="description" content="핵심 클래스 100개를 기능별 관계도로 읽습니다. 소유 구조, 실제 저장 필드, 설정 에셋의 내용과 실행·화면·저장 흐름을 연결했습니다.">
-  <link rel="stylesheet" href="assets/class-map.css?v=core100-1">
-  <script src="assets/class-map-data.js?v=core100-1" defer></script>
-  <script src="assets/class-map.js?v=core100-1" defer></script>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#080b0d">
+<title>Pandora Battle · 핵심 클래스 구조도</title>
+<meta name="description" content="클래스 안의 데이터부터 공유 정의까지, 핵심 100개 클래스의 구조를 UML형 블록과 분기 연결선으로 살펴봅니다.">
+<link rel="stylesheet" href="assets/class-map.css?v=uml-1">
+<script src="assets/class-map-data.js?v=uml-1" defer></script>
+<script src="assets/class-graph-model.js?v=uml-1" defer></script>
+<script src="assets/class-map.js?v=uml-1" defer></script>
 </head>
 <body>
-<header class="map-header"><a class="map-brand" href="index.html?v=core100-1#classes" target="_top"><span>P</span> PANDORA <small>/ CODE ATLAS</small></a><a href="index.html?v=core100-1#classes" target="_top">포트폴리오 ↗</a></header>
+<header class="map-header"><a class="map-brand" href="index.html?v=uml-1#classes" target="_top"><span>P</span> PANDORA <small>/ CODE ATLAS</small></a><a href="index.html?v=uml-1#classes" target="_top">포트폴리오 ↗</a></header>
 <main class="atlas" id="atlas">
-  <div class="atlas-heading"><div><p class="eyebrow">READ THE SYSTEM, FOLLOW THE DATA</p><h1>100 Core <span>Classes.</span></h1></div><p id="source-summary">핵심 클래스 관계도를 불러오는 중입니다.</p></div>
-  <div class="toolbar"><label for="search">핵심 100개에서 찾기<input id="search" type="search" placeholder="PlayerState, 판도라, 체력, 저장, 필드명…" autocomplete="off" aria-controls="search-results"></label><p><b>번호 = 구조를 읽는 우선순위</b><span>01–30 중심 구조 · 이후 기능별 책임과 설정</span></p><button id="reset" type="button">처음부터 읽기</button></div>
-  <div id="search-results" class="search-results" hidden aria-label="클래스 검색 결과"></div><p id="search-status" class="sr-only" role="status" aria-live="polite"></p>
-  <nav id="categories" class="categories" aria-label="기능별 관계도"></nav>
-  <section class="system-heading"><div><p class="eyebrow" id="system-number"></p><h2 id="system-title"></h2></div><p id="system-intro"></p></section>
-  <details class="data-guide" id="pandora-guide"><summary>판도라 데이터의 네 가지 저장 위치</summary><div class="data-guide-grid"><p><b>공유 설정 · Definition</b>이름·아이콘·무기 조건·성장 비용·스킬 정의</p><p><b>플레이어 성장 · Tree</b>판도라별 현재 Level·남은 포인트</p><p><b>능력 출처 · SkillSource</b>출처 정의·스킬·인덱스·부여 레벨·방향</p><p><b>영구 기록 · SaveGame</b>판도라 에셋 ID·레벨·선택/방향별 ID·포인트</p></div></details>
-  <section class="diagram-panel" aria-label="핵심 클래스 관계도">
-    <div class="diagram-toolbar"><div class="view-buttons" role="group" aria-label="관계도 보기 방식"><button id="system-view" type="button" aria-pressed="true">기능별 관계도</button><button id="focus-view" type="button" aria-pressed="false">선택 클래스 연결</button></div><label for="journey">읽을 흐름<select id="journey"></select></label><label id="direction-label" for="direction" hidden>연결 방향<select id="direction"><option value="both">양방향</option><option value="outgoing">이 클래스 → 대상</option><option value="incoming">다른 클래스 → 이 클래스</option></select></label></div>
-    <div class="legend"><span><i class="solid"></i> 보관·소유·설정·호출</span><span><i class="dashed"></i> 화면 투영·구성 순서</span><span>블록 ↗ 헤더 · 데이터 버튼 ↘ 내용 · 화살표 클릭 ↘ 관계 설명</span></div>
-    <div id="diagram" class="diagram" tabindex="0" aria-label="관계도 흐름. 위아래로 스크롤하여 다른 연결을 읽을 수 있습니다."></div>
-    <div class="diagram-footer"><span id="graph-status" role="status" aria-live="polite"></span><span>반복 블록은 같은 클래스입니다. 각 선의 방향은 표시된 관계를 뜻합니다.</span></div>
-  </section>
-  <section class="inspector" id="inspector" aria-labelledby="selected-name">
-    <div class="inspector-heading"><div><p class="eyebrow" id="selected-meta"></p><h2 id="selected-name" tabindex="-1"></h2><p id="selected-purpose"></p></div><div class="inspector-actions"><a id="selected-source" target="_blank" rel="noopener noreferrer">GitHub 헤더 ↗</a><button id="show-connections" type="button">이 클래스 연결 보기</button></div></div>
-    <div class="inspector-columns"><div class="data-column"><h3>무엇을 저장하나</h3><div class="detail-scroll" id="field-details" tabindex="0" aria-label="선택 클래스의 저장 데이터"></div></div><div class="relation-column"><h3>데이터가 어디로 이어지나</h3><div class="detail-scroll" id="relation-details" tabindex="0" aria-label="선택 클래스의 관계 설명"></div></div></div>
-  </section>
-  <details class="class-index"><summary>100개 클래스 · 우선순위 목록 <span id="index-count"></span></summary><div id="class-list" class="class-list"></div></details>
-  <details class="method"><summary>선정 기준과 소스 범위</summary><div><p>중심 상태, 설정 에셋, 전투 실행, 매치·세션, 저장, 화면의 책임을 따라 C++ 핵심 클래스 100개를 선정했습니다. 번호는 구조 이해를 위한 편집상 읽기 순서이며 런타임 성능 순위가 아닙니다. 기본 관계도는 기능별 작은 흐름으로 나누며 같은 클래스가 여러 흐름에 나타날 수 있습니다.</p><p>실선은 표시된 보관·소유·설정 참조·호출 관계입니다. 참조 필드만 확인한 경우에는 소유라고 단정하지 않습니다. 점선은 중간 Widget/Builder를 거치는 화면 투영 또는 헤더에 명시된 기능 구성 순서입니다. 각 화살표에 근거 소스와 구체적인 의미를 연결했습니다.</p><p>‘실제 선언’에는 헤더에 명시된 필드와 C++ 기본값을 표시합니다. Blueprint/Data Asset의 실제 에셋 설정값은 다를 수 있습니다. 구조체는 독립 클래스 수에 넣지 않고 필드 안의 하위 데이터로 펼칩니다. 엔진·외부 플러그인 클래스와 모든 구현 보조 타입은 이 핵심 100개에 포함하지 않습니다.</p><p id="revision"></p></div></details>
-  <p class="index-fallback"><a href="class-index.html?v=core100-1">JavaScript 없이 핵심 클래스 링크 목록 읽기 ↗</a></p>
-  <noscript><p>관계도 조작에는 JavaScript가 필요합니다. 위 링크 목록에서 핵심 클래스의 설명과 헤더를 열 수 있습니다.</p></noscript>
-</main>
-</body>
-</html>
+<div class="atlas-heading"><div><p class="eyebrow">CORE CLASS ATLAS</p><h1>데이터로 읽는 <span>클래스 구조.</span></h1></div><p id="source-summary">관계도 데이터를 불러오는 중입니다.</p></div>
+<nav id="categories" class="categories" aria-label="기능별 카테고리"></nav>
+<div class="toolbar"><label for="class-picker">카테고리의 핵심 클래스<select id="class-picker"></select></label><div class="search-wrap"><label for="search">전체 100개에서 찾기<input id="search" type="search" placeholder="클래스 · 필드 · 역할 검색" autocomplete="off" aria-controls="search-results"></label><div id="search-results" class="search-results" hidden aria-label="클래스 검색 결과"></div></div></div>
+<p id="search-status" class="sr-only" role="status" aria-live="polite"></p>
+<section class="diagram-panel" id="diagram-panel" aria-label="핵심 클래스 UML 구조도">
+<div class="diagram-toolbar"><div class="graph-heading"><button id="back" type="button" disabled aria-label="이전 클래스 구조도">←</button><div><h2 id="graph-title"></h2><span id="graph-role"></span></div></div><div class="graph-controls"><button id="zoom-out" type="button" aria-label="관계도 축소">−</button><output id="zoom-level">100%</output><button id="zoom-in" type="button" aria-label="관계도 확대">+</button><button id="fit" type="button">전체 맞춤</button><button id="expand" type="button" aria-pressed="false">넓게 보기 ⛶</button></div></div>
+<div class="legend"><span><i></i> 소유·보관</span><span><i class="config"></i> 참조 연결</span><span><i class="runtime"></i> 호출·투영</span><span class="interaction-hint">블록 → 해당 구조도 · GitHub ↗ → 헤더</span></div>
+<div id="diagram" class="diagram" tabindex="0" aria-label="클래스 구조도. 빈 곳을 끌어 이동, 더하기와 빼기로 확대 축소, 0으로 전체 맞춤."><div id="graph-world" class="graph-world"></div><div id="edge-tooltip" class="edge-tooltip" hidden></div></div>
+<div class="diagram-footer"><span id="graph-status" role="status" aria-live="polite"></span><div><button id="more-connections" type="button" hidden>추가 연결 보기</button><button id="open-details" type="button">세부 설명 보기 ↓</button><a id="standalone" target="_blank" rel="noopener">별도 탭 ↗</a></div></div>
+</section>
+<details class="detail-disclosure" id="detail-disclosure"><summary>세부 설명 보기 <span id="detail-label"></span></summary>
+<section class="inspector" id="inspector" aria-labelledby="selected-name">
+<div class="inspector-heading"><div><p class="eyebrow" id="selected-meta"></p><h2 id="selected-name" tabindex="-1"></h2><p id="selected-purpose"></p></div><a id="selected-source" target="_blank" rel="noopener noreferrer">GitHub 헤더 ↗</a></div>
+<div class="inspector-columns"><div><h3>무엇을 저장하나</h3><div id="field-details"></div></div><div><h3>데이터가 어디로 이어지나</h3><div id="relation-details"></div></div></div>
+</section></details>
+<details class="class-index"><summary>핵심 100개 · 우선순위 목록</summary><div id="class-list" class="class-list"></div></details>
+<details class="method"><summary>선정 기준과 읽는 방법</summary><div><p>100개 핵심 클래스 중 선택한 클래스와 밀접한 관계를 한 화면에 보여줍니다. 한 구조도 안에서 공유 대상은 하나의 블록으로 표시합니다. 블록을 누르면 해당 클래스의 구조도로 이동합니다. ‘내용’은 하단 설명을, ‘GitHub’는 실제 헤더를 엽니다.</p><p>블록의 행은 실제 선언 필드이며 들여쓴 행은 구조체 안의 데이터입니다. 선의 화살표는 소유자·참조자·호출자에서 대상으로 향합니다. 선 위에 포인터를 놓으면 해당 관계가 강조되고, 누르면 근거와 설명이 하단에 열립니다. 같은 클래스의 상속받은 모든 필드나 모든 구현 보조 타입까지 표시하지는 않습니다.</p><p>Data Asset은 공유 설정, 인스턴스·컴포넌트는 실행 중 상태, SaveGame은 영구 기록입니다. 헤더의 초기값은 C++ 기본값이며 실제 에셋 콘텐츠 값과 다를 수 있습니다.</p><p id="revision"></p></div></details>
+<p class="index-fallback"><a href="class-index.html?v=uml-1">핵심 클래스 링크 목록 ↗</a></p>
+<noscript><p>구조도 조작에는 JavaScript가 필요합니다. 위 링크 목록에서 핵심 클래스의 설명과 헤더를 열 수 있습니다.</p></noscript>
+</main></body></html>

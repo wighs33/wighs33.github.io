@@ -1,107 +1,147 @@
-/* Curated semantic diagrams. Plain DOM, explicit arrows, no external runtime. */
+/* Canonical UML class navigation, source links and an independent detail panel. */
 (() => {
   'use strict';
-  const $ = id => document.getElementById(id);
-  const data = window.PANDORA_CLASS_MAP;
-  if (!data?.nodes?.length) { $('source-summary').textContent='관계도 데이터를 읽지 못했습니다. 아래 핵심 클래스 링크 목록을 이용해 주세요.'; return; }
-  const params = new URLSearchParams(location.search);
-  if (params.get('embed') === '1') document.documentElement.classList.add('embedded');
-  const byName = new Map(data.nodes.map(n=>[n.name,n]));
-  const byEdge = new Map(data.edges.map(e=>[e.id,e]));
-  const categories = new Map(data.categories.map(c=>[c.id,c]));
-  const start = byName.get(params.get('class'));
-  const state = {selected:start?.name || 'APdPlayerState', category:start?.category || 'pandora', mode:start?'focus':'system', journey:'all', edge:null};
-  const pad = n => String(n).padStart(3,'0');
-  const cardData = {
-    APdPlayerState:['ASC·AttributeSet → 능력과 실제 수치','Pandora·Tree·Inventory → 보유와 성장'],
-    UPandoraComponent:['보유 여부·현재 선택·방향별 슬롯','부여한 Ability 핸들 추적'],
-    UPandoraDefinition:['이름·무기 조건·단계별 비용·선행 조건','Skill[] → 슬롯별 SkillDefinition'],
-    USkillDefinition:['ManaCost · Damage · Time → 비용·피해·시간','AbilitiesToGrant → 실행할 능력 클래스'],
-    UPandoraTreeComponent:['GrantedPandoras → 판도라별 현재 Level','PointsAvailable → 남은 성장 포인트'],
-    UPandoraSkillSource:['출처 판도라·스킬 에셋·슬롯 인덱스','부여 시 레벨·로드아웃 방향'],
-    UPdAbilitySystemComponent:['능력·효과·입력 관리자','SkillSource 복제 목록·발동 대기'],
-    UPdGameplayAbility:['비용·이동·연출 관리자와 버프 핸들','Spec.SourceObject → 스킬 출처 조회'],
-    UBasicAttributeSet:['체력·마나·스태미나와 최대치','레벨·경험치·공격·방어 속성'],
-    UInventoryComponent:['아이템 목록·장착/퀵슬롯 GUID','네트워크 복제 항목'],
-    UItemInstance:['공유 ItemDefinition + 개별 ItemId','수량·강화 단계·강화 스탯'],
-    UItemDefinition:['기본 스탯·소모 효과·상점 설정','WeaponData → 장착·공격·투사체 규격'],
-    UPdSaveGame:['판도라 ID별 레벨·방향별 장착 ID','골드·통계·스킨·매치 기록'],
-    UPlayerProfileSubsystem:['플레이어 ID별 SaveGame·스냅샷','저장할 ID·진행 중 ID·재시도'],
-    UPandoraDescriptionWidget:['PandoraDefinition + Tree → 설명 구성','DescriptionViewModel → 화면 표시값']
-  };
-  function el(tag,text,cls) { const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n; }
-  function external(url,text,cls) { const a=el('a',text,cls);a.href=url;a.target='_blank';a.rel='noopener noreferrer';return a; }
-  function button(text,action,cls) {const b=el('button',text,cls);b.type='button';b.addEventListener('click',action);return b;}
-  function linkedEdges(name) { return data.edges.filter(e=>e.source===name || e.target===name); }
-  function updateURL() { const q=new URLSearchParams(location.search);q.set('class',state.selected);history.replaceState(null,'',`${location.pathname}?${q}${location.hash}`); }
-  function select(name,{focus=false,scroll=false,edge=null}={}) {
+  const $=id=>document.getElementById(id),data=window.PANDORA_CLASS_MAP,model=window.PANDORA_UML;
+  if(!data?.nodes?.length||!model){$('source-summary').textContent='데이터를 읽지 못했습니다. 아래 클래스 링크 목록을 이용해 주세요.';return;}
+  const params=new URLSearchParams(location.search),embedded=params.get('embed')==='1';
+  if(embedded)document.documentElement.classList.add('embedded');
+  const byName=new Map(data.nodes.map(n=>[n.name,n])),categories=new Map(data.categories.map(c=>[c.id,c]));
+  const first=byName.get(params.get('class'))||byName.get('APdPlayerState');
+  const state={root:first.name,selected:first.name,category:first.category,edge:null,expanded:false,trail:[]};
+  const cache=new Map(),camera={x:0,y:0,scale:1},pad=n=>String(n).padStart(3,'0');
+  let view,drag=null;
+  function el(tag,text,cls){const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;}
+  function external(url,text,cls){const a=el('a',text,cls);a.href=url;a.target='_blank';a.rel='noopener noreferrer';return a;}
+  function button(text,action,cls){const b=el('button',text,cls);b.type='button';b.addEventListener('click',action);return b;}
+  function linkedEdges(name){return data.edges.filter(e=>e.source===name||e.target===name);}
+  function sourceURL(name){return 'class-map.html?v=uml-1&class='+encodeURIComponent(name);}
+  function updateURL(push){const q=new URLSearchParams(location.search);q.set('class',state.root);q.set('v','uml-1');history[push?'pushState':'replaceState'](null,'',`${location.pathname}?${q}`);}
+  function openGraph(name,{push=true}={}){
     if(!byName.has(name))return;
-    state.selected=name;state.edge=edge;
-    if(focus) {state.mode='focus';state.category=byName.get(name).category;state.journey='all';renderCategories();}
-    renderDiagram();renderInspector();updateURL();
-    if(scroll){$('inspector').scrollIntoView({block:'nearest'});$('selected-name').focus({preventScroll:true});}
+    const changed=name!==state.root;
+    if(push&&changed)state.trail.push(state.root);
+    state.root=name;state.selected=name;state.edge=null;state.expanded=false;state.category=byName.get(name).category;
+    $('search').value='';renderSearch();renderCategories();renderDiagram();renderInspector();updateURL(push&&changed);
   }
-  function renderCategories() {
+  function select(name,{scroll=false,edge=null}={}){showDetails(name,edge,scroll);}
+  function showDetails(name=state.root,edge=null,scroll=true){
+    state.selected=name;state.edge=edge;renderInspector();$('detail-disclosure').open=true;
+    if($('diagram-panel').classList.contains('is-expanded'))toggleExpand();
+    if(scroll)requestAnimationFrame(()=>{$('detail-disclosure').scrollIntoView({block:'start',behavior:'smooth'});$('selected-name').focus({preventScroll:true});});
+  }
+  function renderCategories(){
     $('categories').replaceChildren(...data.categories.map((c,i)=>{
-      const b=button('',()=>{
-        state.category=c.id;state.mode='system';state.journey='all';state.edge=null;
-        state.selected=data.nodes.find(n=>n.category===c.id).name;
-        $('search').value='';renderSearch();renderCategories();renderDiagram();renderInspector();updateURL();
-      },'category-button');
+      const b=button('',()=>openGraph(c.names[0]),'category-button');
       b.setAttribute('aria-pressed',String(c.id===state.category));
-      b.append(el('b',String(i+1).padStart(2,'0')),el('span',c.title),el('small',`${c.names.length}`));
-      return b;
+      b.append(el('b',String(i+1).padStart(2,'0')),el('span',c.title),el('small',String(c.names.length)));return b;
     }));
     const c=categories.get(state.category);
-    $('system-number').textContent=`SYSTEM ${String(data.categories.indexOf(c)+1).padStart(2,'0')} / 09 · ${c.names.length} CORE CLASSES`;
-    $('system-title').textContent=c.title;$('system-intro').textContent=c.intro;
-    $('pandora-guide').hidden=c.id!=='pandora';
+    $('class-picker').replaceChildren(...[...c.names].sort((a,b)=>byName.get(a).rank-byName.get(b).rank).map(name=>{const n=byName.get(name);return new Option(`#${pad(n.rank)} ${name} · ${n.role}`,name);}));
+    $('class-picker').value=state.root;
   }
-  function nodeCard(name) {
-    const n=byName.get(name);
-    const card=el('article',undefined,'flow-node'+(n.storage==='설정 Data Asset'?' is-config':'')+(name===state.selected?' is-selected':''));
-    card.dataset.name=name;
-    const a=external(n.url,undefined,'node-source');a.setAttribute('aria-label',`${name} GitHub 헤더 열기 (새 탭)`);
-    const top=el('span',undefined,'node-top');top.append(el('span',`#${pad(n.rank)}`,'rank'),el('span',`${n.storage} ↗`));
-    a.append(top,el('span',n.role,'node-role'),el('span',name,'node-name'));
-    const lines=cardData[name] || n.highlights.slice(0,2).map(h=>h.meaning);
-    if(!lines.length)lines.push('추가 저장 필드 없음 · 호출 인자/공통 기능 사용');
-    lines.forEach(line=>a.append(el('span',line,'node-data')));
-    const detail=button('데이터·관계 보기 ↘',()=>select(name,{scroll:true}),'node-detail');detail.setAttribute('aria-label',`${name} 데이터와 관계 보기`);
-    card.append(a,detail);return card;
-  }
-  function edgeButton(id) {
-    const e=byEdge.get(id);
-    const b=button('',()=>select(e.source,{scroll:true,edge:id}),`flow-edge ${e.kind}`);
-    b.dataset.edge=id;b.title=e.detail;b.setAttribute('aria-label',`${e.source} → ${e.target}: ${e.label}. 관계 설명 보기`);
-    b.append(el('span',e.label,'edge-label'),el('span',e.payload,'edge-payload'));
-    return b;
-  }
-  function renderDiagram() {
-    const c=categories.get(state.category),focus=state.mode==='focus';
-    $('system-view').setAttribute('aria-pressed',String(!focus));$('focus-view').setAttribute('aria-pressed',String(focus));
-    $('journey').parentElement.hidden=focus;$('direction-label').hidden=!focus;
-    $('journey').replaceChildren(new Option(`모든 흐름 (${c.flows.length})`,'all'),...c.flows.map((f,i)=>new Option(f.title,String(i))));
-    $('journey').value=state.journey;
-    let flows;
-    if(focus) {
-      const direction=$('direction').value;
-      const edges=linkedEdges(state.selected).filter(e=>direction==='both'||(direction==='outgoing'?e.source===state.selected:e.target===state.selected));
-      flows=edges.map((e,i)=>({title:`${String(i+1).padStart(2,'0')} · ${e.label}`,explanation:e.detail,nodes:[e.source,e.target],edges:[e.id]}));
-    } else flows=c.flows.filter((_,i)=>state.journey==='all'||String(i)===state.journey);
-    const graph=$('diagram'),scroll=graph.scrollTop;
-    const lanes=flows.map(f=>{
-      const lane=el('section',undefined,'flow-lane');const heading=el('div',undefined,'flow-heading');
-      heading.append(el('h3',f.title),el('p',f.explanation));
-      const track=el('div',undefined,'flow-track');track.setAttribute('role','group');track.setAttribute('aria-label',f.nodes.join(' → '));
-      f.nodes.forEach((name,i)=>{if(i)track.append(edgeButton(f.edges[i-1]));track.append(nodeCard(name));});
-      lane.append(heading,track);return lane;
+  function svg(tag,attrs={}){const n=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const [k,v]of Object.entries(attrs))n.setAttribute(k,v);return n;}
+  function highlight(names=[],ids=[]){
+    const active=new Set(names),edges=new Set(ids);$('graph-world').classList.toggle('is-highlighting',!!(names.length||ids.length));
+    document.querySelectorAll('.uml-node').forEach(n=>n.classList.toggle('is-active',active.has(n.dataset.name)));
+    document.querySelectorAll('.wire-group').forEach(n=>n.classList.toggle('is-active',edges.has(n.dataset.edge)));
+    document.querySelectorAll('.uml-row').forEach(n=>n.classList.remove('is-active'));
+    view.edges.filter(e=>edges.has(e.id)&&e.sourceRow>=0).forEach(e=>{
+      const card=[...document.querySelectorAll('.uml-node')].find(n=>n.dataset.name===e.source);
+      card?.querySelectorAll('.uml-row')[e.sourceRow]?.classList.add('is-active');
     });
-    graph.replaceChildren(...lanes);
-    if(!flows.length)graph.append(el('p','이 방향에서 선정한 관계가 없습니다. 양방향 또는 기능별 관계도를 선택해 주세요.','empty'));
-    graph.scrollTop=scroll;
-    const count=new Set(flows.flatMap(f=>f.nodes)).size;
-    $('graph-status').textContent=`${focus?'선택 클래스 연결':'기능별 관계도'} · ${count}개 클래스 (연결된 다른 영역 포함) · ${flows.length}개 흐름`;
+    if(!names.length&&!ids.length)$('edge-tooltip').hidden=true;
+  }
+  function highlightNode(name){const links=view.edges.filter(e=>e.source===name||e.target===name);highlight([name,...links.flatMap(e=>[e.source,e.target])],links.map(e=>e.id));}
+  function tooltip(e,event){
+    const tip=$('edge-tooltip');tip.textContent=e.label+'\n'+e.payload;tip.hidden=false;
+    const r=$('diagram').getBoundingClientRect();
+    tip.style.left=Math.max(8,Math.min((event?.clientX??r.left+24)-r.left+16,r.width-tip.offsetWidth-12))+'px';
+    tip.style.top=Math.max(8,Math.min((event?.clientY??r.top+24)-r.top+16,r.height-tip.offsetHeight-12))+'px';
+  }
+  function card(n){
+    const a=el('article',undefined,'uml-node'+(n.name===state.root?' is-root':'')+(/Definition$/.test(n.name)?' is-config':''));
+    a.dataset.name=n.name;a.style.cssText=`left:${n.x}px;top:${n.y}px;width:${n.width}px;height:${n.height}px`;
+    const open=button('',()=>openGraph(n.name),'uml-open');open.setAttribute('aria-label',`${n.name} 구조도 열기`);
+    const header=el('span',undefined,'uml-header'),role=el('span',undefined,'uml-role');
+    role.append(el('span',n.role),el('span',n.name===state.root?'중심 클래스':/Definition$/.test(n.name)?'공유 설정':'#'+pad(n.rank)));
+    const name=el('span',n.name,'uml-name');if(n.name.length>32)name.style.fontSize='11px';
+    header.append(role,name);open.append(header);
+    const fields=el('span',undefined,'uml-fields');
+    for(const row of n.rows){
+      const line=el('span',undefined,'uml-row'+(row.nested?' nested':''));line.dataset.keys=row.keys.join(',');
+      line.title=row.fields.map(f=>f.declaration).join('\n')+'\n'+row.meaning;
+      line.append(el('code',row.label));
+      // Keep field names fully available; long object types are conveyed by the connected block.
+      if(row.type&&row.type.length<=14&&row.label.length<25)line.append(el('small',row.type));
+      fields.append(line);
+    }
+    if(!n.rows.length)fields.append(el('span','추가 필드 없음 · 호출 / 부모 상태 사용','uml-empty'));
+    open.append(fields);
+    const footer=el('div',undefined,'uml-footer');
+    const detail=button('내용 ↓',()=>showDetails(n.name));detail.setAttribute('aria-label',`${n.name} 세부 설명 보기`);
+    const link=external(n.url,'GitHub ↗');link.setAttribute('aria-label',`${n.name} GitHub 헤더 열기 (새 탭)`);
+    footer.append(detail,el('span','블록 클릭 → 구조도','open-label'),link);a.append(open,footer);
+    a.addEventListener('pointerenter',()=>highlightNode(n.name));a.addEventListener('pointerleave',()=>highlight());
+    a.addEventListener('focusin',()=>highlightNode(n.name));a.addEventListener('focusout',()=>highlight());return a;
+  }
+  function renderDiagram(){
+    const landscape=$('diagram').clientWidth/$('diagram').clientHeight>1.55;
+    const key=state.root+':'+state.expanded+':'+landscape;
+    if(!cache.has(key))cache.set(key,model.routeView(model.buildView(data,state.root,state.expanded,landscape)));
+    view=cache.get(key);
+    view.landscape=landscape;
+    const world=$('graph-world');world.replaceChildren();world.classList.remove('is-highlighting');$('edge-tooltip').hidden=true;
+    const wires=svg('svg',{class:'graph-wires',width:1,height:1,'aria-label':'클래스 사이의 관계'}),defs=svg('defs');
+    for(const [id,color]of [['ownership','#8dbfdb'],['reference','#c1a3ef'],['config','#c1a3ef'],['runtime','#acb8a5'],['projection','#acb8a5'],['sequence','#acb8a5'],['inheritance','#8dbfdb']]){
+      const marker=svg('marker',{id:'arrow-'+id,viewBox:'0 0 10 10',refX:9,refY:5,markerWidth:7,markerHeight:7,orient:'auto-start-reverse',markerUnits:'userSpaceOnUse'});
+      marker.append(svg('path',{d:'M0,1 L9,5 L0,9 Z',fill:color}));defs.append(marker);
+    }
+    wires.append(defs);
+    for(const e of view.edges){
+      const group=svg('g',{class:'wire-group','data-edge':e.id}),d=model.roundedPath(e.points);
+      group.append(svg('path',{d,class:'wire-halo'}),svg('path',{d,class:'wire '+e.kind,'marker-end':'url(#arrow-'+e.kind+')'}));
+      const hit=svg('path',{d,class:'wire-hit',tabindex:0,role:'button','aria-label':`${e.source} → ${e.target}: ${e.label}. 세부 설명 보기`});
+      hit.addEventListener('pointerenter',ev=>{highlight([e.source,e.target],[e.id]);tooltip(e,ev);});
+      hit.addEventListener('pointermove',ev=>tooltip(e,ev));hit.addEventListener('pointerleave',()=>highlight());
+      hit.addEventListener('focus',()=>{highlight([e.source,e.target],[e.id]);tooltip(e);});hit.addEventListener('blur',()=>highlight());
+      const detail=()=>showDetails(e.source,e.id);
+      hit.addEventListener('click',detail);hit.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();detail();}});
+      group.append(hit);wires.append(group);
+    }
+    world.append(wires,...view.nodes.map(card));
+    $('graph-title').textContent=state.root;$('graph-role').textContent=byName.get(state.root).role+' · '+byName.get(state.root).storage;
+    $('graph-status').textContent=`${view.nodes.length}개 블록 · ${view.edges.length}개 연결 · `+($('diagram').clientWidth<520?'드래그 이동 · 전체 맞춤으로 구조 보기':'드래그 이동 / Ctrl + 휠 확대');
+    $('more-connections').hidden=!view.hiddenConnections&&!state.expanded;
+    $('more-connections').textContent=state.expanded?'기본 구조로':`추가 연결 ${view.hiddenConnections}개`;
+    $('standalone').href=sourceURL(state.root);$('back').disabled=!state.trail.length;
+    fit();
+  }
+  function applyCamera(){
+    $('graph-world').style.transform=`translate(${camera.x}px,${camera.y}px) scale(${camera.scale})`;
+    $('zoom-level').textContent=Math.round(camera.scale*100)+'%';
+  }
+  function fit(overview=false){
+    if(!view)return;const b=view.bounds,d=$('diagram');
+    camera.scale=Math.min((d.clientWidth-28)/b.width,(d.clientHeight-28)/b.height,1.35);
+    camera.x=(d.clientWidth-b.width*camera.scale)/2-b.x*camera.scale;camera.y=(d.clientHeight-b.height*camera.scale)/2-b.y*camera.scale;
+    // On a phone, start with readable data. The explicit fit action gives the overview.
+    if(d.clientWidth<520&&!overview){const root=view.nodes.find(n=>n.name===state.root);camera.scale=.85;camera.x=(d.clientWidth-root.width*camera.scale)/2-root.x*camera.scale;camera.y=32-root.y*camera.scale;}
+    else if(d.clientWidth<520)camera.y=24-b.y*camera.scale;
+    applyCamera();
+  }
+  function zoom(factor,x=$('diagram').clientWidth/2,y=$('diagram').clientHeight/2){const next=Math.max(.2,Math.min(2.4,camera.scale*factor)),ratio=next/camera.scale;camera.x=x-(x-camera.x)*ratio;camera.y=y-(y-camera.y)*ratio;camera.scale=next;applyCamera();}
+  function toggleExpand(){
+    if(embedded){window.open(sourceURL(state.root)+'&wide=1','_blank','noopener');return;}
+    const expanded=$('diagram-panel').classList.toggle('is-expanded');document.body.classList.toggle('has-expanded',expanded);
+    $('expand').setAttribute('aria-pressed',String(expanded));$('expand').textContent=expanded?'돌아가기 ↙':'넓게 보기 ⛶';renderDiagram();
+  }
+  function renderSearch(){
+    const query=$('search').value.trim().toLocaleLowerCase(),out=$('search-results');out.replaceChildren();out.hidden=!query;
+    if(!query){$('search-status').textContent='';return;}
+    const words=query.split(/\s+/),matches=data.nodes.filter(n=>{const text=[n.name,n.role,n.purpose,...n.highlights.flatMap(h=>[h.meaning,...h.keys])].join(' ').toLocaleLowerCase();return words.every(w=>text.includes(w));});
+    $('search-status').textContent=`핵심 100개 중 ${matches.length}개 검색됨`;
+    if(!matches.length)out.append(el('p','검색 결과가 없습니다.','empty'));
+    matches.forEach(n=>{const b=button('',()=>openGraph(n.name),'search-result');b.append(el('strong',`#${pad(n.rank)} ${n.name}`),el('small',n.role));out.append(b);});
   }
   function declaration(field) {
     const wrapper=el('div',undefined,'declaration');
@@ -120,6 +160,7 @@
   }
   function renderInspector() {
     const n=byName.get(state.selected);
+    $('detail-label').textContent=n.name;
     $('selected-meta').textContent=`#${pad(n.rank)} · ${n.role} · ${n.storage}`;
     $('selected-name').textContent=n.name;$('selected-purpose').textContent=n.purpose;
     $('selected-source').href=n.url;
@@ -151,39 +192,35 @@
     if(!linked.length)relations.append(el('p','선정 범위에서 확인한 직접 관계가 없습니다. 클래스 헤더의 실제 선언을 확인해 주세요.','data-note'));
     document.querySelectorAll('.class-list button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.name===n.name)));
   }
-  function renderSearch() {
-    const query=$('search').value.trim().toLocaleLowerCase(),out=$('search-results');out.replaceChildren();out.hidden=!query;
-    if(!query){$('search-status').textContent='';return;}
-    const words=query.split(/\s+/);
-    const matches=data.nodes.filter(n=>{
-      const text=[n.name,n.role,n.purpose,n.storage,n.path,...n.highlights.flatMap(h=>[h.meaning,...h.keys])].join(' ').toLocaleLowerCase();
-      return words.every(word=>text.includes(word));
-    });
-    $('search-status').textContent=`핵심 100개 중 ${matches.length}개 검색됨`;
-    if(!matches.length)out.append(el('p','검색 결과가 없습니다. 클래스 이름이나 필드 이름, 다른 검색어를 입력해 주세요.','empty'));
-    matches.forEach(n=>{
-      const b=button('',()=>{select(n.name,{focus:true});$('search').value='';renderSearch();$('diagram').scrollTop=0;},'search-result');
-      b.append(el('strong',`#${pad(n.rank)} ${n.name}`),el('small',`${n.role} · ${n.storage}`));out.append(b);
-    });
-  }
+
   $('search').addEventListener('input',renderSearch);
-  $('journey').addEventListener('change',()=>{state.journey=$('journey').value;renderDiagram();$('diagram').scrollTop=0;});
-  $('direction').addEventListener('change',()=>{renderDiagram();$('diagram').scrollTop=0;});
-  $('system-view').addEventListener('click',()=>{state.mode='system';renderDiagram();$('diagram').scrollTop=0;});
-  function focusConnections(){state.mode='focus';state.edge=null;renderDiagram();$('diagram').scrollTop=0;$('diagram').scrollIntoView({block:'nearest'});}
-  $('focus-view').addEventListener('click',focusConnections);$('show-connections').addEventListener('click',focusConnections);
-  $('reset').addEventListener('click',()=>{
-    Object.assign(state,{category:'pandora',selected:'APdPlayerState',mode:'system',journey:'all',edge:null});
-    $('search').value='';$('direction').value='both';renderSearch();renderCategories();renderDiagram();renderInspector();$('diagram').scrollTop=0;updateURL();
+  $('search').addEventListener('keydown',e=>{if(e.key==='Escape'){$('search').value='';renderSearch();}});
+  $('class-picker').addEventListener('change',()=>openGraph($('class-picker').value));
+  $('back').addEventListener('click',()=>{if(state.trail.length)history.back();});
+  $('zoom-in').addEventListener('click',()=>zoom(1.2));$('zoom-out').addEventListener('click',()=>zoom(1/1.2));$('fit').addEventListener('click',()=>fit(true));
+  $('expand').addEventListener('click',toggleExpand);$('open-details').addEventListener('click',()=>showDetails());
+  $('more-connections').addEventListener('click',()=>{state.expanded=!state.expanded;renderDiagram();});
+  $('diagram').addEventListener('pointerdown',e=>{
+    if(e.button!==0||e.target.closest('.uml-node,.wire-hit'))return;
+    drag={id:e.pointerId,x:e.clientX,y:e.clientY,cx:camera.x,cy:camera.y};$('diagram').setPointerCapture(e.pointerId);$('diagram').classList.add('dragging');
   });
-  $('class-list').replaceChildren(...data.nodes.map(n=>{
-    const b=button('',()=>{select(n.name,{focus:true});$('diagram').scrollTop=0;$('diagram').scrollIntoView({block:'nearest'});});b.dataset.name=n.name;b.setAttribute('aria-pressed','false');
-    b.append(el('strong',`#${pad(n.rank)} ${n.name}`),el('small',`${n.role} · ${categories.get(n.category).title}`));return b;
-  }));
-  $('index-count').textContent='100 / 100';
-  $('source-summary').textContent=`100개 클래스 · ${data.edges.length}개 설명된 관계 · 9개 기능 영역`;
-  $('revision').append(el('span',`소스 기준: ${data.meta.sourceDate.slice(0,10)} · `),external(`https://github.com/wighs33/Pandora-Battle/tree/${data.meta.commit}`,data.meta.commit.slice(0,12)+' ↗'));
-  renderCategories();renderDiagram();renderInspector();
+  $('diagram').addEventListener('pointermove',e=>{if(!drag||drag.id!==e.pointerId)return;camera.x=drag.cx+e.clientX-drag.x;camera.y=drag.cy+e.clientY-drag.y;applyCamera();});
+  function endDrag(){drag=null;$('diagram').classList.remove('dragging');}
+  $('diagram').addEventListener('pointerup',endDrag);$('diagram').addEventListener('pointercancel',endDrag);$('diagram').addEventListener('lostpointercapture',endDrag);
+  $('diagram').addEventListener('wheel',e=>{if(!e.ctrlKey&&!e.metaKey)return;e.preventDefault();const r=$('diagram').getBoundingClientRect();zoom(Math.exp(-e.deltaY*.003),e.clientX-r.left,e.clientY-r.top);},{passive:false});
+  $('diagram').addEventListener('keydown',e=>{
+    if(e.target!==$('diagram'))return;
+    if(e.key==='+'||e.key==='=')zoom(1.2);else if(e.key==='-')zoom(1/1.2);else if(e.key==='0')fit(true);
+    else if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){camera.x+=e.key==='ArrowLeft'?40:e.key==='ArrowRight'?-40:0;camera.y+=e.key==='ArrowUp'?40:e.key==='ArrowDown'?-40:0;applyCamera();}else return;e.preventDefault();
+  });
+  addEventListener('keydown',e=>{if(e.key==='Escape'&&$('diagram-panel').classList.contains('is-expanded'))toggleExpand();});
+  addEventListener('popstate',()=>{const name=new URLSearchParams(location.search).get('class');if(byName.has(name)){if(state.trail.at(-1)===name)state.trail.pop();openGraph(name,{push:false});}});
+  $('class-list').replaceChildren(...data.nodes.map(n=>{const b=button('',()=>{openGraph(n.name);$('diagram-panel').scrollIntoView({block:'start'});});b.dataset.name=n.name;b.append(el('strong',`#${pad(n.rank)} ${n.name}`),el('small',n.role));return b;}));
+  $('source-summary').textContent='100개 핵심 클래스 · 9개 기능 영역';
+  $('revision').append(el('span',`소스 기준 ${data.meta.sourceDate.slice(0,10)} · `),external(`https://github.com/wighs33/Pandora-Battle/tree/${data.meta.commit}`,data.meta.commit.slice(0,12)+' ↗'));
+  renderCategories();renderDiagram();renderInspector();updateURL(false);
+  if(params.get('wide')==='1'&&!embedded)toggleExpand();
+  let lastSize='';new ResizeObserver(()=>{const d=$('diagram'),size=d.clientWidth+':'+d.clientHeight;if(size!==lastSize){lastSize=size;if((d.clientWidth/d.clientHeight>1.55)!==view.landscape)renderDiagram();else fit();}}).observe($('diagram'));
   let reportedHeight=0,frame;
   function reportHeight(){cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{const height=Math.ceil($('atlas').getBoundingClientRect().height)+2;if(height!==reportedHeight){reportedHeight=height;if(parent!==window)parent.postMessage({type:'pandora-atlas-height',height},location.origin);}});}
   new ResizeObserver(reportHeight).observe($('atlas'));addEventListener('resize',reportHeight);reportHeight();
