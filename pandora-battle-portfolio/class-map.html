@@ -6,12 +6,12 @@
   <meta name="theme-color" content="#080b0d">
   <title>Pandora Battle · 핵심 100 클래스 관계도</title>
   <meta name="description" content="핵심 클래스 100개를 기능별 관계도로 읽습니다. 소유 구조, 실제 저장 필드, 설정 에셋의 내용과 실행·화면·저장 흐름을 연결했습니다.">
-  <link rel="stylesheet" href="assets/class-map.css">
-  <script src="assets/class-map-data.js" defer></script>
-  <script src="assets/class-map.js" defer></script>
+  <link rel="stylesheet" href="assets/class-map.css?v=core100-1">
+  <script src="assets/class-map-data.js?v=core100-1" defer></script>
+  <script src="assets/class-map.js?v=core100-1" defer></script>
 </head>
 <body>
-<header class="map-header"><a class="map-brand" href="index.html#classes" target="_top"><span>P</span> PANDORA <small>/ CODE ATLAS</small></a><a href="index.html#classes" target="_top">포트폴리오 ↗</a></header>
+<header class="map-header"><a class="map-brand" href="index.html?v=core100-1#classes" target="_top"><span>P</span> PANDORA <small>/ CODE ATLAS</small></a><a href="index.html?v=core100-1#classes" target="_top">포트폴리오 ↗</a></header>
 <main class="atlas" id="atlas">
   <div class="atlas-heading"><div><p class="eyebrow">READ THE SYSTEM, FOLLOW THE DATA</p><h1>100 Core <span>Classes.</span></h1></div><p id="source-summary">핵심 클래스 관계도를 불러오는 중입니다.</p></div>
   <div class="toolbar"><label for="search">핵심 100개에서 찾기<input id="search" type="search" placeholder="PlayerState, 판도라, 체력, 저장, 필드명…" autocomplete="off" aria-controls="search-results"></label><p><b>번호 = 구조를 읽는 우선순위</b><span>01–30 중심 구조 · 이후 기능별 책임과 설정</span></p><button id="reset" type="button">처음부터 읽기</button></div>
@@ -31,7 +31,7 @@
   </section>
   <details class="class-index"><summary>100개 클래스 · 우선순위 목록 <span id="index-count"></span></summary><div id="class-list" class="class-list"></div></details>
   <details class="method"><summary>선정 기준과 소스 범위</summary><div><p>중심 상태, 설정 에셋, 전투 실행, 매치·세션, 저장, 화면의 책임을 따라 C++ 핵심 클래스 100개를 선정했습니다. 번호는 구조 이해를 위한 편집상 읽기 순서이며 런타임 성능 순위가 아닙니다. 기본 관계도는 기능별 작은 흐름으로 나누며 같은 클래스가 여러 흐름에 나타날 수 있습니다.</p><p>실선은 표시된 보관·소유·설정 참조·호출 관계입니다. 참조 필드만 확인한 경우에는 소유라고 단정하지 않습니다. 점선은 중간 Widget/Builder를 거치는 화면 투영 또는 헤더에 명시된 기능 구성 순서입니다. 각 화살표에 근거 소스와 구체적인 의미를 연결했습니다.</p><p>‘실제 선언’에는 헤더에 명시된 필드와 C++ 기본값을 표시합니다. Blueprint/Data Asset의 실제 에셋 설정값은 다를 수 있습니다. 구조체는 독립 클래스 수에 넣지 않고 필드 안의 하위 데이터로 펼칩니다. 엔진·외부 플러그인 클래스와 모든 구현 보조 타입은 이 핵심 100개에 포함하지 않습니다.</p><p id="revision"></p></div></details>
-  <p class="index-fallback"><a href="class-index.html">JavaScript 없이 핵심 클래스 링크 목록 읽기 ↗</a></p>
+  <p class="index-fallback"><a href="class-index.html?v=core100-1">JavaScript 없이 핵심 클래스 링크 목록 읽기 ↗</a></p>
   <noscript><p>관계도 조작에는 JavaScript가 필요합니다. 위 링크 목록에서 핵심 클래스의 설명과 헤더를 열 수 있습니다.</p></noscript>
 </main>
 </body>
