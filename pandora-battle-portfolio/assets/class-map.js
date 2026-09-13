@@ -14,8 +14,8 @@
   function external(url,text,cls){const a=el('a',text,cls);a.href=url;a.target='_blank';a.rel='noopener noreferrer';return a;}
   function button(text,action,cls){const b=el('button',text,cls);b.type='button';b.addEventListener('click',action);return b;}
   function linkedEdges(name){return data.edges.filter(e=>e.source===name||e.target===name);}
-  function sourceURL(name){return 'class-map.html?v=uml-2&class='+encodeURIComponent(name);}
-  function updateURL(push){const q=new URLSearchParams(location.search);q.set('class',state.root);q.set('v','uml-2');history[push?'pushState':'replaceState'](null,'',`${location.pathname}?${q}`);}
+  function sourceURL(name){return 'class-map.html?v=members-1&class='+encodeURIComponent(name);}
+  function updateURL(push){const q=new URLSearchParams(location.search);q.set('class',state.root);q.set('v','members-1');history[push?'pushState':'replaceState'](null,'',`${location.pathname}?${q}`);}
   function openGraph(name,{push=true}={}){
     if(!byName.has(name))return;
     const changed=name!==state.root;
@@ -165,21 +165,7 @@
     $('selected-name').textContent=n.name;$('selected-purpose').textContent=n.purpose;
     $('selected-source').href=n.url;
     const target=$('field-details');target.replaceChildren();target.scrollTop=0;
-    target.append(el('p','아래는 헤더의 실제 필드입니다. 선언에 나온 숫자는 C++ 기본값이며, Data Asset에 설정된 실제 콘텐츠 값과 다를 수 있습니다.','data-note'));
-    for(const h of n.highlights) {
-      const group=el('div',undefined,'field-group');group.append(el('p',h.meaning));
-      const keys=el('div',undefined,'field-keys');h.fields.forEach(f=>keys.append(external(f.url,f.key+' ↗')));group.append(keys);
-      const raw=el('details');raw.append(el('summary','실제 선언과 하위 데이터 펼치기'));h.fields.forEach(f=>raw.append(declaration(f)));group.append(raw);
-      const refs=referenceNames(h.fields).filter(name=>name!==n.name);
-      refs.forEach(name=>{
-        const ref=byName.get(name),preview=el('div',undefined,'reference-preview');
-        preview.append(el('b',`${name} · ${ref.role}`),el('p',ref.purpose),button(`${ref.role} 데이터 보기 →`,()=>select(name,{scroll:false})));
-        group.append(preview);
-      });
-      target.append(group);
-    }
-    if(!n.fields.length)target.append(el('p','이 클래스가 추가로 선언한 저장 필드는 없습니다. 부모의 상태 또는 호출 시 전달된 인자를 사용합니다.','data-note'));
-    const all=el('details',undefined,'field-group');all.append(el('summary',`이 클래스의 직접 선언 필드 전체 (${n.fields.length})`));n.fields.forEach(f=>all.append(declaration(f)));target.append(all);
+    window.PANDORA_MEMBER_INSPECTOR.render(n,target,declaration);
     const relations=$('relation-details');relations.replaceChildren();relations.scrollTop=0;
     const linked=linkedEdges(n.name).sort((a,b)=>(b.id===state.edge)-(a.id===state.edge));
     linked.forEach(e=>{

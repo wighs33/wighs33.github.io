@@ -9,8 +9,9 @@ A shared class occurs only once within a view.
 A block opens that class's canonical graph. Its separate GitHub link opens the
 commit-pinned header. The `내용` button and edge clicks open the independent,
 initially collapsed detail section below the canvas without changing the graph.
-The detail section preserves Korean explanations, declarations, nested schemas,
-related data previews and source evidence. Static `class-index.html` provides
+The detail section adds searchable member purposes and source-linked usage lists
+while preserving declarations, nested schemas, related data previews and source
+evidence. Static `class-index.html` provides
 all 100 header links.
 
 `assets/class-graph-model.js` defines compact field compartments, curated hub
@@ -30,8 +31,10 @@ contains the Unreal-aware C++ parsing utilities.
 python -m pip install tree-sitter==0.25.2 tree-sitter-cpp==0.23.4
 python tools/build-class-map.py /path/to/Pandora-Battle
 node tools/verify-class-map.mjs /path/to/Pandora-Battle
+python tools/verify-field-usage.py /path/to/Pandora-Battle
 node tools/verify-class-graph.mjs
 node --check pandora-battle-portfolio/assets/class-map.js
+node --check pandora-battle-portfolio/assets/field-inspector.js
 ```
 
 The builder requires a clean source checkout and cannot regenerate the previous
@@ -54,3 +57,22 @@ opens the large view. `?embed=1` omits standalone chrome and uses a fixed canvas
 height to avoid iframe feedback loops. The child reports content height to a
 same-origin, exact-source-checked listener in `site.js`. Long detail/index lists
 scroll internally so expanded content stays within the parent's height bound.
+
+The main builder also invokes `build-field-usage.py`. It indexes C++ member
+references and verified Getter calls using the same pinned source checkout.
+`field-usage-content.py` supplies reviewed core-member purposes and reusable
+schema descriptions. The index is loaded by `field-inspector.js` only when the
+lower details are opened; source revisions must match before it is displayed.
+
+Direct use, external direct use, and one Getter hop have separate lists. Getter
+callers include a caller → Getter → member path, definition links, and exact
+usage lines. The Getter implementation must itself reference the member; naming
+alone is insufficient. Setter-only calls and arbitrary transitive callers are
+excluded. Editor/tests and project macro-generated GAS accessors are folded into
+separate groups. Comments, strings, shadowing locals, and receivers of unrelated
+types are excluded. This is a source index, not a full Unreal compiler: unresolved
+dynamic types, Blueprint/reflection uses, and asset values are not inferred.
+
+`verify-field-usage.py` checks every selected member, exact evidence lines and
+Getter-to-member definitions, plus regressions for PlayerState, SkillSource,
+PandoraDefinition, lexical scope, typed receivers and Setter-only callers.
