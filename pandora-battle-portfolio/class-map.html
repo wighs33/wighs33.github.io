@@ -4,13 +4,13 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#080b0d">
 <title>Pandora Battle · 핵심 클래스 구조도</title>
 <meta name="description" content="클래스 안의 데이터부터 공유 정의까지, 핵심 100개 클래스의 구조를 UML형 블록과 분기 연결선으로 살펴봅니다.">
-<link rel="stylesheet" href="assets/class-map.css?v=uml-1">
-<script src="assets/class-map-data.js?v=uml-1" defer></script>
-<script src="assets/class-graph-model.js?v=uml-1" defer></script>
-<script src="assets/class-map.js?v=uml-1" defer></script>
+<link rel="stylesheet" href="assets/class-map.css?v=uml-2">
+<script src="assets/class-map-data.js?v=uml-2" defer></script>
+<script src="assets/class-graph-model.js?v=uml-2" defer></script>
+<script src="assets/class-map.js?v=uml-2" defer></script>
 </head>
 <body>
-<header class="map-header"><a class="map-brand" href="index.html?v=uml-1#classes" target="_top"><span>P</span> PANDORA <small>/ CODE ATLAS</small></a><a href="index.html?v=uml-1#classes" target="_top">포트폴리오 ↗</a></header>
+<header class="map-header"><a class="map-brand" href="index.html?v=uml-2#classes" target="_top"><span>P</span> PANDORA <small>/ CODE ATLAS</small></a><a href="index.html?v=uml-2#classes" target="_top">포트폴리오 ↗</a></header>
 <main class="atlas" id="atlas">
 <div class="atlas-heading"><div><p class="eyebrow">CORE CLASS ATLAS</p><h1>데이터로 읽는 <span>클래스 구조.</span></h1></div><p id="source-summary">관계도 데이터를 불러오는 중입니다.</p></div>
 <nav id="categories" class="categories" aria-label="기능별 카테고리"></nav>
@@ -18,7 +18,7 @@
 <p id="search-status" class="sr-only" role="status" aria-live="polite"></p>
 <section class="diagram-panel" id="diagram-panel" aria-label="핵심 클래스 UML 구조도">
 <div class="diagram-toolbar"><div class="graph-heading"><button id="back" type="button" disabled aria-label="이전 클래스 구조도">←</button><div><h2 id="graph-title"></h2><span id="graph-role"></span></div></div><div class="graph-controls"><button id="zoom-out" type="button" aria-label="관계도 축소">−</button><output id="zoom-level">100%</output><button id="zoom-in" type="button" aria-label="관계도 확대">+</button><button id="fit" type="button">전체 맞춤</button><button id="expand" type="button" aria-pressed="false">넓게 보기 ⛶</button></div></div>
-<div class="legend"><span><i></i> 소유·보관</span><span><i class="config"></i> 참조 연결</span><span><i class="runtime"></i> 호출·투영</span><span class="interaction-hint">블록 → 해당 구조도 · GitHub ↗ → 헤더</span></div>
+<div class="legend"><span><i></i> 소유·보관</span><span><i class="config"></i> 참조 연결</span><span><i class="runtime"></i> 호출·투영</span><span><i class="inheritance"></i> 상속</span><span class="interaction-hint">블록 → 해당 구조도 · GitHub ↗ → 헤더</span></div>
 <div id="diagram" class="diagram" tabindex="0" aria-label="클래스 구조도. 빈 곳을 끌어 이동, 더하기와 빼기로 확대 축소, 0으로 전체 맞춤."><div id="graph-world" class="graph-world"></div><div id="edge-tooltip" class="edge-tooltip" hidden></div></div>
 <div class="diagram-footer"><span id="graph-status" role="status" aria-live="polite"></span><div><button id="more-connections" type="button" hidden>추가 연결 보기</button><button id="open-details" type="button">세부 설명 보기 ↓</button><a id="standalone" target="_blank" rel="noopener">별도 탭 ↗</a></div></div>
 </section>
@@ -29,6 +29,6 @@
 </section></details>
 <details class="class-index"><summary>핵심 100개 · 우선순위 목록</summary><div id="class-list" class="class-list"></div></details>
 <details class="method"><summary>선정 기준과 읽는 방법</summary><div><p>100개 핵심 클래스 중 선택한 클래스와 밀접한 관계를 한 화면에 보여줍니다. 한 구조도 안에서 공유 대상은 하나의 블록으로 표시합니다. 블록을 누르면 해당 클래스의 구조도로 이동합니다. ‘내용’은 하단 설명을, ‘GitHub’는 실제 헤더를 엽니다.</p><p>블록의 행은 실제 선언 필드이며 들여쓴 행은 구조체 안의 데이터입니다. 선의 화살표는 소유자·참조자·호출자에서 대상으로 향합니다. 선 위에 포인터를 놓으면 해당 관계가 강조되고, 누르면 근거와 설명이 하단에 열립니다. 같은 클래스의 상속받은 모든 필드나 모든 구현 보조 타입까지 표시하지는 않습니다.</p><p>Data Asset은 공유 설정, 인스턴스·컴포넌트는 실행 중 상태, SaveGame은 영구 기록입니다. 헤더의 초기값은 C++ 기본값이며 실제 에셋 콘텐츠 값과 다를 수 있습니다.</p><p id="revision"></p></div></details>
-<p class="index-fallback"><a href="class-index.html?v=uml-1">핵심 클래스 링크 목록 ↗</a></p>
+<p class="index-fallback"><a href="class-index.html?v=uml-2">핵심 클래스 링크 목록 ↗</a></p>
 <noscript><p>구조도 조작에는 JavaScript가 필요합니다. 위 링크 목록에서 핵심 클래스의 설명과 헤더를 열 수 있습니다.</p></noscript>
 </main></body></html>

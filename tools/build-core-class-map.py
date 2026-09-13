@@ -167,8 +167,8 @@ def build(repo):
     (destination/'assets/class-map-data.js').write_text('window.PANDORA_CLASS_MAP = '+json.dumps(result,ensure_ascii=False,separators=(',',':'))+';\n',encoding='utf8',newline='\n')
     rows = []
     for n in nodes:
-        rows.append(f'<li><a href="{html.escape(n["url"])}" target="_blank" rel="noopener noreferrer">#{n["rank"]:03d} {n["name"]} ↗</a><b>{html.escape(n["role"])}</b><p>{html.escape(n["purpose"])}</p><a href="class-map.html?v=uml-1&amp;class={n["name"]}">이 클래스 구조도 →</a></li>')
-    page = '<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pandora Battle · 핵심 100 클래스</title><link rel="stylesheet" href="assets/class-map.css?v=uml-1"></head><body><main class="source-index"><a href="class-map.html?v=uml-1">← 핵심 클래스 관계도</a><h1>핵심 클래스 100</h1><p>구조 이해를 위한 읽기 우선순위입니다. 설정·실행 상태·영구 저장·표시 데이터를 구분했습니다.</p><ol>'+''.join(rows)+'</ol></main></body></html>\n'
+        rows.append(f'<li><a href="{html.escape(n["url"])}" target="_blank" rel="noopener noreferrer">#{n["rank"]:03d} {n["name"]} ↗</a><b>{html.escape(n["role"])}</b><p>{html.escape(n["purpose"])}</p><a href="class-map.html?v=uml-2&amp;class={n["name"]}">이 클래스 구조도 →</a></li>')
+    page = '<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pandora Battle · 핵심 100 클래스</title><link rel="stylesheet" href="assets/class-map.css?v=uml-2"></head><body><main class="source-index"><a href="class-map.html?v=uml-2">← 핵심 클래스 관계도</a><h1>핵심 클래스 100</h1><p>구조 이해를 위한 읽기 우선순위입니다. 설정·실행 상태·영구 저장·표시 데이터를 구분했습니다.</p><ol>'+''.join(rows)+'</ol></main></body></html>\n'
     (destination/'class-index.html').write_text(page,encoding='utf8',newline='\n')
     print(f'Built {len(nodes)} classes / {len(edges)} explained relationships / {len(groups)} systems at {sha[:8]}')
 

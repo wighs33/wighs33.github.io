@@ -14,8 +14,8 @@
   function external(url,text,cls){const a=el('a',text,cls);a.href=url;a.target='_blank';a.rel='noopener noreferrer';return a;}
   function button(text,action,cls){const b=el('button',text,cls);b.type='button';b.addEventListener('click',action);return b;}
   function linkedEdges(name){return data.edges.filter(e=>e.source===name||e.target===name);}
-  function sourceURL(name){return 'class-map.html?v=uml-1&class='+encodeURIComponent(name);}
-  function updateURL(push){const q=new URLSearchParams(location.search);q.set('class',state.root);q.set('v','uml-1');history[push?'pushState':'replaceState'](null,'',`${location.pathname}?${q}`);}
+  function sourceURL(name){return 'class-map.html?v=uml-2&class='+encodeURIComponent(name);}
+  function updateURL(push){const q=new URLSearchParams(location.search);q.set('class',state.root);q.set('v','uml-2');history[push?'pushState':'replaceState'](null,'',`${location.pathname}?${q}`);}
   function openGraph(name,{push=true}={}){
     if(!byName.has(name))return;
     const changed=name!==state.root;
@@ -92,9 +92,9 @@
     view.landscape=landscape;
     const world=$('graph-world');world.replaceChildren();world.classList.remove('is-highlighting');$('edge-tooltip').hidden=true;
     const wires=svg('svg',{class:'graph-wires',width:1,height:1,'aria-label':'클래스 사이의 관계'}),defs=svg('defs');
-    for(const [id,color]of [['ownership','#8dbfdb'],['reference','#c1a3ef'],['config','#c1a3ef'],['runtime','#acb8a5'],['projection','#acb8a5'],['sequence','#acb8a5'],['inheritance','#8dbfdb']]){
+    for(const [id,color]of [['ownership','#8dbfdb'],['reference','#c1a3ef'],['config','#c1a3ef'],['runtime','#acb8a5'],['projection','#acb8a5'],['sequence','#acb8a5'],['inheritance','#d2c9ae']]){
       const marker=svg('marker',{id:'arrow-'+id,viewBox:'0 0 10 10',refX:9,refY:5,markerWidth:7,markerHeight:7,orient:'auto-start-reverse',markerUnits:'userSpaceOnUse'});
-      marker.append(svg('path',{d:'M0,1 L9,5 L0,9 Z',fill:color}));defs.append(marker);
+      marker.append(svg('path',{d:'M0,1 L9,5 L0,9 Z',fill:id==='inheritance'?'#0b1117':color,stroke:color,'stroke-width':id==='inheritance'?1:0}));defs.append(marker);
     }
     wires.append(defs);
     for(const e of view.edges){
