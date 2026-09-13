@@ -127,4 +127,3 @@ def declared_types(root):
 
     visit(root)
     return found
-
