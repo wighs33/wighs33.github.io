@@ -100,9 +100,16 @@ def verify(repo):
     ability_use=next(u for u in data['classes']['UPandoraSkillSource']['PandoraDefinition']['uses'] if data['functions'][u['function']]['owner']=='UPdGameplayAbility' and data['functions'][u['function']]['name']=='PreActivate')
     assert ability_use['access']=='getter' and 'UPandoraSkillSource::GetPandoraDefinition()' in ability_use['via']
     assert 'UPandoraSkillSource::Initialize' in names('UPandoraSkillSource','PandoraDefinition')
-    assert 'FPandoraSkillBinder::GrantPandoraContent' in names('UPandoraDefinition','Skill')
+    assert 'FPandoraSkillBinder::GrantPandoraContent' in names('UPandoraDefinition','Skills')
     assert 'UPandoraTreeComponent::ArePandoraUnlockRulesMet' in names('UPandoraDefinition','UnlockRules')
-    assert 'UPandoraDefinition::GetMaxLevel' not in names('UPandoraDefinition','MaxLevel')
+    assert 'UPandoraDefinition::GetMaxLevel' in names('UPandoraDefinition','MaxLevel')
+    assert 'UPandoraSkillSource::GetSkillDataAsset' in names('UPandoraDefinition','Skills')
+    assert 'USkillAbility::ActivateAbility' in names('USkillDefinition','Action')
+    assert 'USkillAbility::GetRemainingDuration' in names('USkillAbility','DurationEndTime')
+    assert 'USkillRepeatAction::RunNext' in names('USkillRepeatAction','Action')
+    assert 'UStatUpgradeDefinition::CalculateInitialAttributeValues' in names('UStatUpgradeDefinition','AttributeDefaultValues')
+    assert 'UBasicAttributeSet::CalculateCooldownDuration' in names('UBasicAttributeSet','Arcane')
+    assert 'UReactiveStatusEffectAbility::OnGameplayEffectAppliedToTarget' in names('UStatusEffectDefinition','StackTag')
     assert not data['classes']['ULobbyRuntimeSubsystem']['bLobbyDataAssetsReady']['uses']
     print(json.dumps({'result':'PASS','classes':len(classes),'members':data['meta']['fields'],'functions':len(data['functions']),'sourceEvidenceChecks':checks,'getterPaths':'verified separately','setterOnlyCallers':'excluded','scopeFixtures':14}))
 

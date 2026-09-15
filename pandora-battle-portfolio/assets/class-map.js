@@ -6,7 +6,8 @@
   const params=new URLSearchParams(location.search),embedded=params.get('embed')==='1';
   if(embedded)document.documentElement.classList.add('embedded');
   const byName=new Map(data.nodes.map(n=>[n.name,n])),categories=new Map(data.categories.map(c=>[c.id,c]));
-  const first=byName.get(params.get('class'))||byName.get('APdPlayerState');
+  const previousClasses={UPandoraInstance:'UPandoraComponent',UAbilityAttributeManager:'UPdAbilitySystemComponent',UProjectileAbility:'USkillProjectileCastAction',ASword:'AWeaponBase',AGun:'AWeaponBase',ABow:'AWeaponBase',UPlayerHudWidget:'APdHUD',UPandoraTreeViewModel:'UPandoraTreeComponent'};
+  const first=byName.get(previousClasses[params.get('class')]||params.get('class'))||byName.get('APdPlayerState');
   const state={root:first.name,selected:first.name,category:first.category,edge:null,expanded:false,trail:[]};
   const cache=new Map(),camera={x:0,y:0,scale:1},pad=n=>String(n).padStart(3,'0');
   let view,drag=null;
@@ -14,8 +15,8 @@
   function external(url,text,cls){const a=el('a',text,cls);a.href=url;a.target='_blank';a.rel='noopener noreferrer';return a;}
   function button(text,action,cls){const b=el('button',text,cls);b.type='button';b.addEventListener('click',action);return b;}
   function linkedEdges(name){return data.edges.filter(e=>e.source===name||e.target===name);}
-  function sourceURL(name){return 'class-map.html?v=members-1&class='+encodeURIComponent(name);}
-  function updateURL(push){const q=new URLSearchParams(location.search);q.set('class',state.root);q.set('v','members-1');history[push?'pushState':'replaceState'](null,'',`${location.pathname}?${q}`);}
+  function sourceURL(name){return 'class-map.html?v=gas-3&class='+encodeURIComponent(name);}
+  function updateURL(push){const q=new URLSearchParams(location.search);q.set('class',state.root);q.set('v','gas-3');history[push?'pushState':'replaceState'](null,'',`${location.pathname}?${q}`);}
   function openGraph(name,{push=true}={}){
     if(!byName.has(name))return;
     const changed=name!==state.root;
@@ -182,6 +183,7 @@
   $('search').addEventListener('input',renderSearch);
   $('search').addEventListener('keydown',e=>{if(e.key==='Escape'){$('search').value='';renderSearch();}});
   $('class-picker').addEventListener('change',()=>openGraph($('class-picker').value));
+  $('update-shortcuts').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>openGraph(b.dataset.class)));
   $('back').addEventListener('click',()=>{if(state.trail.length)history.back();});
   $('zoom-in').addEventListener('click',()=>zoom(1.2));$('zoom-out').addEventListener('click',()=>zoom(1/1.2));$('fit').addEventListener('click',()=>fit(true));
   $('expand').addEventListener('click',toggleExpand);$('open-details').addEventListener('click',()=>showDetails());
@@ -202,8 +204,9 @@
   addEventListener('keydown',e=>{if(e.key==='Escape'&&$('diagram-panel').classList.contains('is-expanded'))toggleExpand();});
   addEventListener('popstate',()=>{const name=new URLSearchParams(location.search).get('class');if(byName.has(name)){if(state.trail.at(-1)===name)state.trail.pop();openGraph(name,{push:false});}});
   $('class-list').replaceChildren(...data.nodes.map(n=>{const b=button('',()=>{openGraph(n.name);$('diagram-panel').scrollIntoView({block:'start'});});b.dataset.name=n.name;b.append(el('strong',`#${pad(n.rank)} ${n.name}`),el('small',n.role));return b;}));
-  $('source-summary').textContent='100개 핵심 클래스 · 9개 기능 영역';
+  $('source-summary').textContent=`100개 핵심 클래스 · 9개 기능 영역 · UE ${data.meta.engine}`;
   $('revision').append(el('span',`소스 기준 ${data.meta.sourceDate.slice(0,10)} · `),external(`https://github.com/wighs33/Pandora-Battle/tree/${data.meta.commit}`,data.meta.commit.slice(0,12)+' ↗'));
+  for(const commit of data.meta.recentCommits||[])$('revision').append(el('br'),external(`https://github.com/wighs33/Pandora-Battle/commit/${commit.commit}`,commit.title+' ↗'));
   renderCategories();renderDiagram();renderInspector();updateURL(false);
   if(params.get('wide')==='1'&&!embedded)toggleExpand();
   let lastSize='';new ResizeObserver(()=>{const d=$('diagram'),size=d.clientWidth+':'+d.clientHeight;if(size!==lastSize){lastSize=size;if((d.clientWidth/d.clientHeight>1.55)!==view.landscape)renderDiagram();else fit();}}).observe($('diagram'));

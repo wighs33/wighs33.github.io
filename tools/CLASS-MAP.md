@@ -44,7 +44,7 @@ without construction evidence. Dashed projection edges name the intermediary
 Widget/Builder; Game Feature ordering is a documented configuration guideline.
 
 Source verification checks all field/schema declarations and source links,
-PlayerState ownership, Definition → FSkill → SkillDefinition, Tree growth,
+PlayerState ownership, Definition → Skills → SkillDefinition → Action, Tree growth,
 SkillSource registration and AbilitySpec SourceObject use, saved PrimaryAssetIds,
 and separation of StateTree and BT. Geometry verification covers all 100 roots
 in normal/expanded and portrait/landscape variants: unique connected blocks,
@@ -76,3 +76,38 @@ dynamic types, Blueprint/reflection uses, and asset values are not inferred.
 `verify-field-usage.py` checks every selected member, exact evidence lines and
 Getter-to-member definitions, plus regressions for PlayerState, SkillSource,
 PandoraDefinition, lexical scope, typed receivers and Setter-only callers.
+
+## September 2026 GAS revision
+
+The atlas follows the final state of `9f66751`, `0639f90`, and `bdbf797`
+(UE 5.8). The generator records the source revision, engine association, and
+three commit links. The recent-change shortcuts open the canonical skill/action,
+attribute initialization, status effect, and source cooldown graphs.
+
+The 100-class selection replaces deleted `UPandoraInstance`,
+`UAbilityAttributeManager`, and `UProjectileAbility`, and reprioritizes five
+equipment/UI classes. It adds `USkillAbility`, `USkillAction`, the sequence,
+parallel, repeat and projectile cast actions, `UReactiveStatusEffectAbility`,
+and `UStatusEffectWidget`. Old selected-class URLs resolve to their replacement
+or nearest remaining core class.
+
+Key source distinctions are preserved in graph fields and member details:
+
+- `UPandoraDefinition.Skills` directly references skill definitions. The source
+  has four fields and resolves its skill through the definition and slot index.
+- `USkillDefinition.Action` is an asset template; `USkillAbility.ActiveAction`
+  is a per-cast duplicate. Sequence, parallel and repeat actions retain both
+  their inheritance and child-reference meaning in the relationship label.
+- `UStatUpgradeDefinition` calculates ordered initial values; ASC validates all
+  mappings before applying maxima and filling current resources. The deleted
+  attribute manager and intermediate cooldown-handle design are not retained.
+- Cooldown queries filter ASC active effects by source and cooldown tag. Normal
+  skill completion applies cooldown only when its commit/use-count guards pass.
+- Status stack settings, threshold-triggered activation/damage, stack
+  replication, and widget timers are distinct responsibilities. Definition
+  lists and replicated ownership entries are also separate data stores.
+
+Verification includes the new source invariants and member usage regressions.
+This revision indexes 100 classes, 198 relationships and 1,175 selected members;
+geometry verification checks 400 layout variants. C++ configuration is inspected,
+but the website verification does not compile the Unreal project.

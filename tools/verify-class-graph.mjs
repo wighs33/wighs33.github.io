@@ -35,7 +35,10 @@ const player=model.buildView(data,'APdPlayerState'),names=player.nodes.map(n=>n.
 for(const edge of ['APdPlayerState>UPdAbilitySystemComponent','UPdAbilitySystemComponent>UPandoraSkillSource','UPandoraSkillSource>UPandoraDefinition'])assert(player.edges.some(e=>e.id===edge));
 assert.equal(names.filter(n=>n==='UPandoraDefinition').length,1);
 const definition=player.nodes.find(n=>n.name==='UPandoraDefinition');
-assert(definition.rows.some(r=>r.nested&&r.keys.includes('SkillDefinition')));
+assert(definition.rows.some(r=>!r.nested&&r.keys.includes('Skills')&&r.fields[0].references.includes('USkillDefinition')));
 assert(definition.rows.some(r=>r.nested&&r.keys.includes('RequiredLevel')));
+const actions=model.buildView(data,'USkillAction');
+for(const name of ['USkillAbility','USkillDefinition','USkillSequenceAction','USkillParallelAction','USkillRepeatAction','USkillProjectileCastAction'])assert(actions.nodes.some(n=>n.name===name));
+assert(actions.nodes.find(n=>n.name==='USkillAction').rows.some(r=>r.nested&&r.keys.includes('EventData')));
 const modelFile=fileURLToPath(new URL('class-graph-model.js',assets));
 console.log(JSON.stringify({result:'PASS',canonicalClasses:data.nodes.length,layoutVariants:graphs,routedConnections:routes,umlFieldChecks:fields,model:modelFile},null,2));

@@ -2,6 +2,7 @@
 import re
 
 NOTES = '''
+USkillDefinition.Description|스킬 툴팁과 판도라 상세 화면에 표시할 설명 원문입니다. UI 데이터 Builder와 스킬 설명 위젯이 읽어 표시 문구를 구성합니다.
 APdPlayerState.AbilitySystemComponent|플레이어의 능력·효과·속성을 실행하는 ASC를 PlayerState 수명에 연결해 둡니다. 캐릭터와 입력·소모품 처리에서 같은 실행기에 접근하도록 반환합니다.
 APdPlayerState.BasicAttributeSet|체력·마나·레벨 등 GAS 속성의 저장 객체를 PlayerState의 기본 서브오브젝트로 생성해 유지합니다. 이 포인터의 직접 사용은 생성자이며, 실제 수치 처리는 UBasicAttributeSet과 GAS 쪽에서 이뤄집니다.
 APdPlayerState.SelectingPandoraAndWeaponComponent|현재 무기와 판도라를 같은 로드아웃 방향으로 전환할 담당 컴포넌트를 유지하고, 선택 요청과 슬롯 변경 처리에서 꺼내 쓰게 합니다.
@@ -13,35 +14,32 @@ APdPlayerState.InventoryComponent|아이템 소유 목록과 무기·소모품 �
 APdPlayerState.PandoraComponent|보유 판도라·장착 슬롯·현재 선택을 관리하는 컴포넌트를 유지합니다. 보상·장착·스킬 발동과 UI가 같은 선택 상태를 조회하게 합니다.
 APdPlayerState.PandoraTreeComponent|판도라별 성장 레벨과 남은 포인트를 관리하는 트리를 유지해 기본 지급, 성장과 선택 스킬의 실행 레벨 조회에 사용합니다.
 APdPlayerState.PlayerRewardComponent|획득·처치 보상을 실제 플레이어 데이터에 지급할 담당 컴포넌트를 연결해 둡니다.
-APdPlayerState.StatUpgradeComponent|스탯 기본값 적용과 투자·회수 요청을 처리할 컴포넌트를 유지합니다. BeginPlay에서 서버 기본 속성값을 적용할 때 사용합니다.
+APdPlayerState.StatUpgradeComponent|스탯 정의의 로드와 서버 기본값 초기화 시점, 투자·환불 요청을 담당합니다. 계산은 StatUpgradeDefinition이, 실제 GAS 적용은 ASC가 맡도록 연결합니다.
 UPdAbilitySystemComponent.GrantedPandoraSkillSources|AbilitySpec이 참조하는 판도라 출처 객체를 유지하고 복제 서브오브젝트로 등록합니다. 더 이상 사용하는 능력이 없을 때 보관·복제 등록을 정리하기 위한 목록입니다.
 UPdAbilitySystemComponent.ActivationsWaitingForSource|클라이언트에 판도라 출처가 아직 도착하지 않은 발동을 보류합니다. 출처 복제 후 재시도하고 종료·실패한 발동은 대기 목록에서 제거합니다.
 UPdAbilitySystemComponent.AbilityGrantAndInputManager|능력 부여와 입력 태그·핸들 상태 처리를 한 관리자로 위임해 ASC의 입력/능력 콜백에서 재사용합니다.
-UPdAbilitySystemComponent.AttributeManager|속성 설정 적용과 해제 수명을 담당하는 관리자를 유지해 ASC의 설정 요청을 위임합니다.
-UPandoraSkillSource.PandoraDefinition|부여된 능력이 어느 판도라에서 왔는지 기억합니다. 원본의 스킬 슬롯을 찾고 판도라별 쿨다운을 구분하며, 플레이어의 현재 선택이 바뀌어도 출처를 유지합니다.
-UPandoraSkillSource.SkillDataAsset|이 능력에 부여된 실제 스킬 설정을 기억해 비용·피해·시간·연출 설정을 읽을 수 있게 합니다. 판도라 전체 정의와 스킬 하나의 정의를 구분하는 참조입니다.
-UPandoraSkillSource.SkillIndex|PandoraDefinition.Skill 배열에서 이 능력의 출처 슬롯을 식별합니다. 해당 슬롯 조회와 판도라/슬롯 조합의 쿨다운 구분에 사용합니다.
+UPandoraSkillSource.PandoraDefinition|어느 판도라에서 부여된 스킬인지 기억합니다. SkillIndex와 함께 GetSkillDataAsset에서 실제 스킬 정의를 조회합니다. 이 출처 객체 자체가 쿨다운 효과의 SourceObject가 됩니다.
+UPandoraSkillSource.SkillIndex|PandoraDefinition.Skills 배열에서 이번 능력의 슬롯을 찾기 위해 보관합니다. GetSkillDataAsset이 정의의 GetSkillDefinition(SkillIndex)을 호출하므로 별도 스킬 포인터를 중복 보관하지 않습니다.
 UPandoraSkillSource.PandoraLevel|출처 초기화 시 전달된 레벨을 보관합니다. Binder 경로에서는 스킬 슬롯의 요구 레벨을 전달하므로 Tree에 저장된 플레이어의 현재 성장 레벨과 같은 뜻으로 해석하지 않습니다.
 UPandoraSkillSource.LoadoutDirection|능력이 어느 로드아웃 방향에서 부여됐는지 기억해 해당 방향의 판도라 속성 및 피해 계산 문맥을 선택할 때 사용합니다.
 UPandoraDefinition.DisplayName|카드·슬롯·상점·설명 화면에서 사용할 판도라 이름입니다. GetDisplayName은 값이 비어 있으면 에셋 이름을 대신 반환합니다.
 UPandoraDefinition.Description|판도라의 설명 원문을 보관해 카드·상점·상세 설명용 표시 데이터로 전달합니다.
 UPandoraDefinition.IconTexture|판도라를 그림으로 식별할 공통 아이콘 에셋을 참조합니다. 슬롯·장착 버튼·보상 알림에서 같은 아이콘을 사용합니다.
-UPandoraDefinition.IdTag|판도라의 종류를 태그로 식별해 종류별 검색·필터와 설정 검증에 사용합니다.
+UPandoraDefinition.IdTag|판도라 분류를 태그로 식별해 MatchesPandoraType과 외부 Getter 기반 필터·표시에 사용합니다.
 UPandoraDefinition.ActivatableWeaponTags|사용을 허용할 무기 태그들을 보관합니다. 무기 호환 여부를 검사하고 UI에 무기 요구 조건을 표시할 때 읽습니다.
-UPandoraDefinition.MaxLevel|에셋의 최대 단계를 고정 규칙 3에 맞춰 정규화·검증하기 위한 필드입니다. 현재 GetMaxLevel은 이 필드를 읽지 않고 FixedPandoraMaxLevel 상수를 반환합니다.
-UPandoraDefinition.PointsRequiredPerLevel|각 단계의 판도라 성장에 필요한 포인트 비용입니다. 레벨별 비용 조회에 쓰며, 정규화할 때 항목 수와 최소 비용을 보정합니다.
+UPandoraDefinition.MaxLevel|모든 판도라의 최대 레벨을 3으로 고정하는 static constexpr 상수입니다. GetMaxLevel·GetFixedMaxLevel, 슬롯 요구 레벨과 해금 범위 검사에 사용합니다. 에셋마다 변경되는 저장값이 아닙니다.
+UPandoraDefinition.PointsRequiredPerLevel|레벨별 성장 포인트 비용을 보관합니다. GetRequiredPointsForLevel이 요청 레벨에 해당하는 항목을 읽으며 유효하지 않은 항목은 1로 처리합니다.
 UPandoraDefinition.UnlockRules|선행 판도라와 필요한 성장 레벨을 저장합니다. Tree가 해금 가능 여부를 검사하고 설명 화면이 선행 조건을 안내할 때 사용합니다.
-UPandoraDefinition.Skill|각 슬롯의 USkillDefinition 참조를 보관합니다. Binder가 능력을 부여하고 SkillSource가 원본 슬롯을 찾으며 스킬바·설명 화면이 슬롯 정보를 구성할 때 읽습니다.
-UPandoraDefinition.Tier|에셋에 판도라 티어 분류를 기록합니다. 현재 확인된 직접 C++ 사용은 에디터 설정 검증이며, 런타임 성장 계산에 쓰인다고 단정하지 않습니다.
-UPandoraDefinition.ShopData|판도라 상품의 가격·판매 관련 공통 설정을 담아 상점 상품 정보 조회와 에셋 유효성 검증에 사용합니다.
+UPandoraDefinition.Tier|에셋에 판도라 티어를 기록하는 설정 필드입니다. 최신 C++ 소스에서 이를 사용하는 함수는 확인되지 않습니다.
+UPandoraDefinition.ShopData|가격·판매 관련 공통 설정을 담습니다. GetShopData가 상점 처리에 읽기 전용 참조를 반환합니다.
 UPandoraTreeComponent.GrantedPandoras|플레이어가 성장시킨 판도라와 현재 레벨을 함께 저장합니다. 해금 조건·현재 레벨 조회, 성장 갱신과 저장/복원에 사용합니다.
 UPandoraTreeComponent.PointsAvailable|현재 소비 가능한 판도라 포인트를 유지합니다. 성장 비용을 지불할 수 있는지 검사하고 획득·소비 후 화면에 남은 수량을 알립니다.
 UPandoraTreeComponent.InitialGrantedPandoras|트리 초기 구성 시 지급할 판도라와 시작 레벨을 설정합니다. 실행 중 성장 기록인 GrantedPandoras와 구분합니다.
 UPandoraTreeComponent.InitialPointsAvailable|트리 초기 구성에 사용할 시작 포인트 수량입니다. 실행 중 잔액인 PointsAvailable의 초기 정책을 제공합니다.
-UPandoraComponent.AllPandoraList|판도라 정의와 플레이어의 보유 여부를 모아 소유 조회·획득·필터·로드아웃 검증에 사용합니다.
+UPandoraComponent.AllPandoraList|표시와 검색에 사용할 PandoraDefinition 목록입니다. 보유 여부를 멤버로 가진 인스턴스 목록은 아니며 보유 판정은 ReplicatedEntries의 IsOwned를 조회합니다.
 UPandoraComponent.CurrentPandoraDefinition|현재 선택한 판도라 정의를 참조해 선택 스킬의 부여·입력 연결과 UI 알림에 사용합니다.
 UPandoraComponent.PandoraLoadoutSlots|로드아웃 방향별 판도라 정의를 보관해 방향 전환 시 어느 판도라를 선택할지 결정합니다.
-UPandoraComponent.GrantedPandoraAbilityHandles|선택 판도라로 ASC에 부여한 능력 핸들을 추적해 선택 변경·재부여 시 기존 능력을 정리할 수 있게 합니다.
+UPandoraComponent.GrantedPandoraAbilityHandles|보유한 판도라에서 부여된 능력 핸들을 유지해 전체 초기화·기능 종료 시 회수합니다. 단순 선택 변경은 입력 태그를 바꾸며 기존 시전과 쿨다운 출처를 유지합니다.
 UPandoraComponent.AllPandroaDefinition|조회한 판도라 정의들을 모아 보유 목록 준비와 판도라 분류에 재사용합니다. 원본 코드의 Pandroa 철자를 그대로 표시합니다.
 APdPlayerController.ControllerInputComponent|입력 정의 로드·매핑·액션 바인딩을 맡길 컴포넌트를 유지해 컨트롤러의 입력 설정 수명과 연결합니다.
 APdPlayerController.ControllerSessionComponent|방 나가기와 세션 종료 절차를 담당하는 컴포넌트를 유지해 종료 요청을 위임합니다.
@@ -67,6 +65,44 @@ UPdSaveGame.TotalKillCount|누적 처치 수를 저장해 통계와 진행 기�
 UPdSaveGame.TotalDeathCount|누적 사망 수를 저장해 통계와 진행 기록을 복원합니다.
 UPdSaveGame.TotalRewardGold|누적 보상 골드를 저장해 보상 이력을 유지합니다. 현재 보유 잔액인 Gold와 구분합니다.
 UPdSaveGame.ItemCollectedCount|획득 아이템 수를 저장해 수집 진행과 관련 기록을 다음 실행에 이어갑니다.
+UPandoraDefinition.Skills|슬롯 순서대로 USkillDefinition을 직접 참조합니다. Getter가 슬롯 범위와 빈 참조를 확인하고 Binder·SkillSource·UI에 스킬 설정을 반환합니다.
+UPandoraComponent.ReplicatedEntries|Definition과 IsOwned를 담는 복제 항목 목록입니다. 보유 상태를 서버에서 변경하고 클라이언트 목록·필터·로드아웃에 반영합니다.
+USkillDefinition.Action|에셋 안에 편집 가능한 액션 트리 템플릿을 보관합니다. USkillAbility가 활성화할 때 트리 전체를 DuplicateObject하여 시전자별 진행 상태를 분리합니다.
+USkillDefinition.Activation|시전 조건·실행 중 소유 태그·차단/취소 태그·Press 입력 해제 정책·쿨다운당 사용 횟수를 묶습니다. Binder가 Spec 태그를 구성하고 SkillAbility가 시전 조건과 종료 정책에 적용합니다.
+USkillDefinition.Time|CooldownDuration은 종료 시 적용할 쿨다운의 기본 시간이고 Duration은 준비·조준·몽타주까지 포함한 전체 스킬 시간입니다. SkillAbility가 활성화 시 DurationEndTime을 계산합니다.
+USkillAbility.ActiveAction|정의의 Action을 복제한 이번 시전의 루트입니다. 완료 콜백을 연결해 결과에 따라 Ability를 끝내고, 종료·취소 때 전체 트리의 대기 작업을 정리합니다.
+USkillAbility.ActivationTime|이번 활성화가 시작된 월드 시각입니다. Duration 종료 시점 계산과 Press 입력의 최소 유지 시간 계산에 사용합니다.
+USkillAbility.DurationEndTime|Duration 스킬의 하나의 절대 종료 시점입니다. -1은 기한 없는 종료 정책을 뜻하며 액션·반복·연출이 GetRemainingDuration으로 같은 남은 시간을 읽습니다.
+USkillAbility.DurationTimer|Duration 만료 또는 Press 최소 유지 시간 도달 시 Ability를 끝낼 타이머입니다. Ability가 끝나면 타이머도 해제합니다.
+USkillAbility.bSkillCommitted|이번 시전이 비용을 이미 확정했는지 기록해 여러 액션이 CommitSkill을 호출해도 한 번만 차감합니다. 정상 종료의 쿨다운 적용 조건으로도 확인합니다.
+USkillAbility.UsesSinceCooldown|쿨다운까지 허용되는 연속 사용 횟수를 추적합니다. 정의의 UsesPerCooldown과 레벨 배율 기준에 도달하면 0으로 되돌리고 정상 종료 시 쿨다운을 적용합니다.
+USkillAction.OwningAbility|이번 액션의 실행기를 약하게 참조합니다. 파생 액션이 GetAbility로 공통 GAS 작업·피해 생성·남은 시간에 접근하며 실행기를 소유하지는 않습니다.
+USkillAction.ExecutionContext|현재 대상 Actor·Transform·GameplayEventData를 묶습니다. 결과 문맥을 다음 액션에 전달해 이벤트 대기·조준·투사체 적중 이후 단계를 같은 트리로 연결합니다.
+USkillAction.OnFinished|이 액션의 성공·실패 완료를 부모 액션이나 SkillAbility에 전달하는 델리게이트입니다. 순차 진행·병렬 잔여 수·Ability 종료를 연결합니다.
+USkillAction.bRunning|중복 시작·완료·취소를 막는 실행 플래그입니다. 자식 정리나 콜백 시 이미 종료된 액션이 다시 진행되지 않도록 검사합니다.
+USkillSequenceAction.Actions|앞에서부터 실행할 자식 액션 배열입니다. 이전 자식의 결과 문맥을 다음 자식에 전달하고 실패하면 나머지 진행을 중단합니다.
+USkillSequenceAction.NextIndex|다음에 시작할 자식의 배열 위치를 기억합니다. 자식 완료 콜백에서 다음 위치를 이어 실행하고 배열 끝이면 완료합니다.
+USkillParallelAction.Actions|동시에 시작하는 자식 액션 배열입니다. 모든 자식에 같은 초기 문맥을 주며 실패·취소 시 실행 중인 자식을 함께 정리합니다.
+USkillParallelAction.Remaining|아직 완료하지 않은 자식 수입니다. 자식 완료마다 감소시켜 모두 끝난 시점을 판단합니다.
+USkillRepeatAction.Action|반복의 원본 자식 템플릿입니다. 매 반복 DuplicateObject로 Current를 새로 만들어 이전 반복의 상태가 남지 않게 합니다.
+USkillRepeatAction.Current|지금 실행 중인 반복 자식 복제본입니다. 완료를 구독하고 반복 중단이나 부모 취소 시 이 객체를 정리합니다.
+USkillRepeatAction.Count|실행할 총 반복 횟수입니다. 0이면 횟수 제한 없이 Ability 수명 안에서 반복하고 양수면 CompletedCount와 비교합니다.
+USkillRepeatAction.Interval|자식 완료 뒤 다음 반복을 예약할 간격입니다. 실행기의 공통 지속시간이 끝나면 새 반복을 시작하지 않습니다.
+USkillRepeatAction.CompletedCount|끝낸 반복 수를 누적해 Count 도달 여부를 검사합니다. 새로 시작할 때 초기화합니다.
+USkillRepeatAction.Timer|다음 반복 예약을 취소·정리하기 위한 타이머 핸들입니다. 중단된 시전에서 지연 콜백이 계속 실행되지 않게 해제합니다.
+USkillProjectileCastAction.Settings|이 액션의 투사체 생성 클래스·속도·궤적·조준·차징·소켓 발사·연출 설정입니다. USkillDefinition의 공통 비용·피해 설정과 구분하며 같은 스킬 트리 안에서 액션마다 다르게 구성할 수 있습니다.
+UAbilityGrantAndInputManager.HoldAbilityHandlesByInputTag|Press 스킬·그래플처럼 해제가 필요한 능력만 누른 순간의 입력 태그와 핸들로 연결합니다. 선택이 바뀌어도 원래 누른 능력에 해제를 전달합니다.
+UAbilityGrantAndInputManager.PendingHoldReleases|키는 놓았지만 아직 해제를 전달하지 못한 능력 핸들입니다. 활성화 전 해제도 기록하고 처리 가능할 때 전달한 뒤 제거합니다.
+UAbilityGrantAndInputManager.PendingRemoteActivations|ServerInitiated 활성화 응답을 기다리는 핸들만 기록해 같은 요청의 중복 전송을 막습니다. 로컬 예측 스킬과 ServerOnly 능력은 여기에 보관하지 않습니다.
+UStatUpgradeDefinition.AttributeDefaultValues|속성 태그·기본값·투자당 값·우선순위를 보관합니다. CalculateInitialAttributeValues에서 우선순위 순으로 기본값을 합치고 시작 투자분을 같은 투자 공식으로 계산합니다.
+UStatUpgradeDefinition.PairedResourceStatTags|최대 자원 태그와 현재 자원 태그를 연결합니다. 초기값 계산에서 현재 자원을 뒤로 정렬하고 기본값이 없는 현재 자원은 실제 최대값으로 채우도록 ASC에 전달합니다.
+UBasicAttributeSet.Arcane|신비 수치를 보관합니다. CalculateCooldownDuration이 GetArcane으로 0~100% 감소율을 구해 스킬 기본 쿨다운 시간에 적용합니다.
+UBasicAttributeSet.Burn|화상 피해 보너스 수치입니다. GetStatusEffectDamageBonusPercent가 화상 태그일 때 GetBurn으로 읽어 상태 이상 피해 계산에 사용합니다.
+UBasicAttributeSet.Frostbite|동상 피해 보너스 수치입니다. GetStatusEffectDamageBonusPercent가 동상 태그일 때 GetFrostbite로 읽습니다.
+UBasicAttributeSet.ElectricShock|감전 피해 보너스 수치입니다. GetStatusEffectDamageBonusPercent가 감전 태그일 때 GetElectricShock으로 읽습니다.
+UStatusEffectWidget.StackFillDecreaseStartTime|스택 감소 표시를 시작한 시각입니다. NativeTick이 공통 FullStackLifetimeSeconds·StackHoldSeconds 기준으로 게이지를 보간할 때 사용합니다.
+UStatusEffectWidget.StackFillDecreaseStartPercent|스택이 마지막으로 갱신됐을 때의 게이지 비율입니다. 시작 시각과 함께 Tick에서 감소하는 화면 비율을 계산합니다.
+UStatusEffectWidget.CurrentStackCount|ASC 또는 복제 컴포넌트에서 받은 스택 수를 화면 상태로 보관합니다. 실제 게임 스택은 GAS와 복제 항목에 있으며 이 값은 게이지 표시와 제거 판단에 사용합니다.
 '''
 EXACT = dict(line.split('|',1) for line in NOTES.strip().splitlines())
 

@@ -24,32 +24,34 @@ flow('05 · 컨트롤러 표현 설정','표현 설정의 기본 참조는 프�
 flow('06 · 이름으로 판도라 설정 찾기','이름 → 에셋 ID/경로의 색인과 실제 판도라 설정은 다릅니다.','UContentDataSubsystem UPandoraDefinition'),
 flow('07 · 화면의 진입점과 라우터','HUD Actor가 라우터를 보관하고 라우터가 로컬 UI 서비스를 조회합니다.','APdHUD UHudUiRouter UUiSubsystem')],
 'pandora':[
-flow('01 · 무엇을 소유하고 선택했나','PlayerState의 PandoraComponent가 보유 목록과 현재 선택을 관리합니다. Instance는 정의 참조와 보유 여부만 담습니다.','APdPlayerState UPandoraComponent UPandoraInstance'),
-flow('02 · 판도라 안에 실제로 무엇이 있나','판도라의 무기 조건·성장 규칙 → Skill 배열의 SkillDefinition → 비용·피해·시간·Ability 클래스까지 이어집니다.','UPandoraComponent UPandoraDefinition USkillDefinition'),
+flow('01 · 정의 기반 보유 목록','목록은 Definition을 직접 참조하고 보유 여부는 ReplicatedEntries에 따로 저장합니다.','APdPlayerState UPandoraComponent UPandoraDefinition'),
+flow('02 · 판도라 안에 실제로 무엇이 있나','판도라의 무기 조건·성장 규칙 → Skills 배열의 직접 참조 → 비용·피해·시간·Action 트리까지 이어집니다.','UPandoraComponent UPandoraDefinition USkillDefinition'),
 flow('03 · 설정이 실행 가능한 능력이 되는 과정','Binder가 해금된 슬롯을 읽어 SourceObject를 만들고 AbilitySpec과 함께 ASC에 부여합니다.','UPandoraComponent FPandoraSkillBinder UPandoraSkillSource'),
-flow('04 · 능력은 자기 출처를 어떻게 아나','Ability는 현재 Spec의 SourceObject를 읽습니다. Source의 SkillDataAsset이 실제 스킬 설정입니다.','UPdGameplayAbility UPandoraSkillSource USkillDefinition'),
+flow('04 · 능력은 자기 출처를 어떻게 아나','Ability는 현재 Spec의 SourceObject를 읽습니다. Source가 정의의 GetSkillDefinition(SkillIndex)으로 실제 설정을 조회합니다.','UPdGameplayAbility UPandoraSkillSource USkillDefinition'),
 flow('05 · 출처 정보의 네트워크 수명','ASC는 Source를 복제 서브오브젝트 목록에 등록합니다. PlayerState가 Source를 직접 필드로 보관하는 관계는 아닙니다.','APdPlayerState UPdAbilitySystemComponent UPandoraSkillSource'),
 flow('06 · 성장 레벨은 어디에 있나','Tree의 GrantedPandoras에는 정의와 현재 Level, PointsAvailable에는 남은 포인트가 있습니다. 정의에서는 비용·선행 조건을 읽습니다.','APdPlayerState UPandoraTreeComponent UPandoraDefinition'),
 flow('07 · 세트 전환과 해금 상태 조회','선택 번호를 방향으로 해석해 판도라를 전환하고, 능력 해금은 Tree의 레벨을 조회합니다.','USelectingPandoraAndWeaponComponent UPandoraComponent UPandoraTreeComponent'),
 flow('08 · 캐릭터 레벨과 스탯 투자','캐릭터 레벨/경험치는 AttributeSet의 값입니다. 판도라별 성장 레벨과 구분합니다.','ULevelingComponent UBasicAttributeSet'),
 flow('09 · 스탯 투자 규칙','투자 요청 처리와 투자 상한·효과·속성 초깃값 설정을 분리합니다.','UStatUpgradeComponent UStatUpgradeDefinition')],
 'combat':[
-flow('01 · ASC 내부의 역할 분담','ASC가 능력 입력과 발동 대기 상태를 관리하는 객체를 보관합니다.','APdPlayerState UPdAbilitySystemComponent UAbilityGrantAndInputManager'),
-flow('02 · 속성값과 적용 설정','체력·마나의 실제 값과 속성 설정의 적용 핸들은 다른 곳에 있습니다.','APdPlayerState UBasicAttributeSet'),
-flow('03 · 속성 설정 관리자','ASC의 AttributeManager가 설정 적용/해제 수명을 관리합니다.','UPdAbilitySystemComponent UAbilityAttributeManager'),
-flow('04 · 비용과 시간 설정 사용','능력 실행기가 SkillDefinition의 마나와 쿨다운/지속 시간을 조회합니다.','UPdGameplayAbility UAbilityCostAndCooldownManager USkillDefinition'),
-flow('05 · 능력 연출 관리자','활성 연출 액터와 자기 버프 표현 대상을 추적합니다.','UPdGameplayAbility UAbilityPresentationManager'),
-flow('06 · 일반 공격 실행','AttackAbility는 공통 Ability를 상속하고 CombatComponent로 공격 구간을 처리합니다.','UAttackAbility UCombatComponent AWeaponBase'),
-flow('07 · 투사체 준비와 충돌','Ability의 준비된 투사체가 피해 Spec과 상태이상 설정을 가지고 월드를 이동합니다.','UProjectileAbility AProjectileBase UStatusEffectDefinition'),
-flow('08 · 투사체 능력의 공통 동작','공통 비용·출처·연출 로직을 재사용합니다.','UProjectileAbility UPdGameplayAbility'),
-flow('09 · 사망과 상태이상 표시','공통 몸체가 사망 처리 컴포넌트를 보관합니다.','ACharacterBase UCharacterDeathComponent'),
-flow('10 · 복제할 상태이상 목록','스택을 복제하는 컴포넌트와 스택 목록의 수명을 구분합니다.','ACharacterBase UStatusEffectReplicationComponent')],
+flow('01 · ASC와 입력 상태','누름은 즉시 전달하고 해제가 필요한 능력만 추적합니다.','APdPlayerState UPdAbilitySystemComponent UAbilityGrantAndInputManager'),
+flow('02 · 정의가 초기값 계산, ASC가 적용','최대 자원을 먼저 적용할 목록을 계산하고 실제 GAS 속성에 적용합니다.','UPdAbilitySystemComponent UStatUpgradeDefinition'),
+flow('03 · 실제 속성과 보정 계산','ASC가 속성 태그 연결을 확인하고 기본값을 적용합니다.','UPdAbilitySystemComponent UBasicAttributeSet'),
+flow('04 · 하나의 실행기','공통 Ability 기능을 사용하는 SkillAbility가 시전 트리를 복제합니다.','USkillAbility UPdGameplayAbility UAbilityCostAndCooldownManager'),
+flow('05 · 액션 템플릿과 시전 복제본','정의가 가진 템플릿과 실행기가 가진 ActiveAction을 구분합니다.','USkillDefinition USkillAction USkillAbility'),
+flow('06 · 순차 실행','Actions 순서대로 결과 문맥을 전달합니다.','USkillSequenceAction USkillAction'),
+flow('07 · 병렬 실행','자식들을 시작하고 Remaining이 0이 될 때 완료합니다.','USkillParallelAction USkillAction'),
+flow('08 · 반복 실행','매 반복 자식을 복제하고 공통 종료 시점을 확인합니다.','USkillRepeatAction USkillAction'),
+flow('09 · 투사체 발사 액션','설정과 조준 상태를 가진 액션이 준비 투사체를 생성합니다.','USkillProjectileCastAction AProjectileBase UStatusEffectDefinition'),
+flow('10 · 공통 연출','Ability가 생성한 연출 관리자가 같은 시전 수명을 따릅니다.','UPdGameplayAbility UAbilityPresentationManager'),
+flow('11 · 일반 무기 공격','기본 공격은 CombatComponent에서 무기 판정을 실행합니다.','UAttackAbility UCombatComponent AWeaponBase'),
+flow('12 · 누적 스택에서 발동 효과로','효과 적용을 감시하고 최대 스택에서 실제 상태 이상을 발동합니다.','UReactiveStatusEffectAbility UStatusEffectDefinition'),
+flow('13 · 상태 이상 피해 보정','피해 계산과 Spec의 SetByCaller 기록은 AttributeSet 공통 기능을 사용합니다.','UReactiveStatusEffectAbility UBasicAttributeSet'),
+flow('14 · 캐릭터의 스택 복제','공통 몸체의 컴포넌트가 스택 수명을 추적합니다.','ACharacterBase UStatusEffectReplicationComponent'),
+flow('15 · 사망 처리','사망 상태는 별도 컴포넌트에서 정리합니다.','ACharacterBase UCharacterDeathComponent')],
 'equipment':[
 flow('01 · 공통 규격과 개별 아이템','소유 목록 → GUID/수량/강화 → 공통 스탯·소모 효과·무기 설정입니다.','UInventoryComponent UItemInstance UItemDefinition'),
 flow('02 · 선택을 실제 무기로','장비 컴포넌트는 현재 무기 액터를 추적하고 액터는 아이템 정의를 사용합니다.','UEquipmentComponent AWeaponBase UItemDefinition'),
-flow('03 · 검의 공통 동작','추가 필드가 없는 검 타입은 부모의 판정/표현 상태를 사용합니다.','ASword AWeaponBase'),
-flow('04 · 총과 활의 차이','총은 다음 발사 시각을 추가로 저장합니다.','AGun AWeaponBase'),
-flow('05 · 활의 준비 상태','활은 준비된 화살과 서버 시위 당김 상태를 추가로 관리합니다.','ABow AWeaponBase'),
 flow('06 · 처치 보상','지급 요청의 대기 상태와 보상 수치·정책 에셋을 분리합니다.','APdPlayerState UPlayerRewardComponent URewardDefinition'),
 flow('07 · 시작 콘텐츠 지급','지급 절차가 모드별 에셋 목록과 수치를 읽습니다.','UDefaultPlayerProvisioner UDefaultProvisionDefinition'),
 flow('08 · 무기와 판도라 세트 전환','선택한 방향에서 인벤토리의 무기를 찾고 장비 교체를 요청합니다.','USelectingPandoraAndWeaponComponent UEquipmentComponent UInventoryComponent')],
@@ -86,17 +88,17 @@ flow('03 · 저장 예약에서 파일 포장까지','저장 서비스가 변경
 flow('04 · 입장할 때 프로필 적용','매치 입장 서비스가 로컬 프로필 서비스와 PlayerState를 연결합니다.','UExperiencePlayerProfileService UPlayerProfileSubsystem'),
 flow('05 · 외형 프로필 동기화','Controller 컴포넌트가 로컬 프로필에서 외형 정보를 읽고 동기화를 요청합니다.','APdPlayerController UControllerProfileSyncComponent UPlayerProfileSubsystem')],
 'ui':[
+flow('07 · 상태 이상 표시','스택 복제와 상태 효과 정의를 UI에서 함께 읽습니다.','UStatusEffectWidget UStatusEffectReplicationComponent'),
+flow('07b · 상태 아이콘과 게이지','태그·최대 스택·지속시간·색상 설정입니다.','UStatusEffectWidget UStatusEffectDefinition'),
 flow('01 · HUD와 화면 서비스','라우터가 로컬 플레이어의 UI 서비스를 조회합니다. 화면 클래스 설정은 공통 에셋에서 읽습니다.','UHudUiRouter UUiSubsystem UWidgetClassDefinition'),
-flow('02 · 플레이 중 HUD 설정','HUD Widget은 전달받은 화면 클래스 정의를 사용합니다.','UPlayerHudWidget UWidgetClassDefinition'),
 flow('03 · 정보 화면의 상태 연결','Presenter가 로드아웃 캐시를 보관하고 캐시는 원본 판도라 상태를 구독합니다.','UInfoUiPresenter UInfoLoadoutStore UPandoraComponent'),
 flow('04 · 판도라 탭 선택과 필터','탭 Presenter는 선택 슬롯/필터를 적용해 로드아웃 데이터를 표현합니다.','UInfoUiPresenter UInfoPandoraTabPresenter UInfoLoadoutStore'),
 flow('05 · 판도라 카드로 투영','PandoraWidget/Builder를 거쳐 정의와 성장 상태를 카드 이름·레벨·잠금 상태로 바꿉니다.','UPandoraDefinition UPandoraWidgetViewModel'),
 flow('06 · 판도라 설명으로 투영','PandoraDescriptionWidget/Builder가 SkillDefinition의 이름·설명·아이콘까지 읽어 상세 표시값을 만듭니다.','UPandoraDefinition UPandoraDescriptionViewModel'),
-flow('07 · 성장 포인트로 투영','PandoraTreeWidget을 거쳐 남은 포인트를 ViewModel에 전달합니다.','UPandoraTreeComponent UPandoraTreeViewModel'),
 flow('08 · 체력은 원본 속성을 구독','ViewModel이 ASC의 AttributeSet 값 변경을 구독해 화면 수치와 비율을 만듭니다.','UHealthBarViewModel UBasicAttributeSet'),
 flow('09 · 스킬 바와 개별 쿨다운','스킬 바가 개별 슬롯을 생성·초기화하고 슬롯은 능력 핸들에 연결됩니다.','UAbilitiesBarWidget UAbilitySlotWidget'),
 flow('11 · 설정과 표시값을 연결하는 실제 Widget','Widget은 판도라 정의와 Tree를 함께 읽고 DescriptionViewModel을 생성/갱신합니다.','UPandoraDescriptionWidget UPandoraDescriptionViewModel'),
-flow('12 · 설명할 판도라와 스킬 설정','Widget의 Definition에서 Skill 배열을 따라 실제 스킬 설정을 읽습니다.','UPandoraDescriptionWidget UPandoraDefinition USkillDefinition'),
+flow('12 · 설명할 판도라와 스킬 설정','Widget의 Definition에서 Skills 배열을 따라 실제 스킬 설정을 읽습니다.','UPandoraDescriptionWidget UPandoraDefinition USkillDefinition'),
 flow('10 · 상점 데이터','상점은 카탈로그의 상품 참조와 자동 포함 정책으로 목록을 만듭니다.','UShopWidget UShopCatalogDefinition')]
 }
 
@@ -105,20 +107,20 @@ RELATIONSHIPS = r'''
 UHudUiRouter>UUiSubsystem|runtime|화면 서비스 조회|LocalPlayer Subsystem|라우터가 로컬 플레이어의 UiSubsystem을 조회해 화면/모달 입력 서비스를 사용합니다. OwnerHud 필드는 APdHUD의 약한 참조입니다.|HudUiRouter.cpp|GetSubsystem<UUiSubsystem>()
 APdPlayer>APdPlayerState|runtime|상태 조회|GetPlayerState|플레이어 몸체는 자신의 PlayerState에서 ASC와 플레이어 상태를 얻습니다.|PdPlayer.cpp|GetPlayerState<APdPlayerState>
 APdPlayerState>UPandoraComponent|ownership|생성·소유|CreateDefaultSubobject|PlayerState 생성자에서 PandoraComponent를 생성합니다. 실제 보유·선택 데이터는 이 컴포넌트에 있습니다.|PdPlayerState.cpp|PandoraComponent = CreateDefaultSubobject
-APdPlayerState>UPandoraTreeComponent|ownership|생성·소유|성장 목록·포인트|PlayerState가 Tree를 생성합니다. 판도라별 Level과 남은 포인트가 이곳에 있으며 Source나 Instance의 값과 다릅니다.|PdPlayerState.cpp|PandoraTreeComponent = CreateDefaultSubobject
+APdPlayerState>UPandoraTreeComponent|ownership|생성·소유|성장 목록·포인트|PlayerState가 Tree를 생성합니다. 판도라별 Level과 남은 포인트가 이곳에 있으며 Source의 슬롯 요구 레벨과 다릅니다.|PdPlayerState.cpp|PandoraTreeComponent = CreateDefaultSubobject
 APdPlayerState>UPdAbilitySystemComponent|ownership|생성·소유|능력·효과 실행기|PlayerState 생성자에서 ASC를 만들며 판도라 Source 복제는 ASC가 담당합니다.|PdPlayerState.cpp|AbilitySystemComponent = CreateDefaultSubobject
 UPlayerControllerDefinition>UPdGameInstanceDefinition|config|기본 설정 조회|프로젝트 Definition 참조|컨트롤러 표현 Definition의 기본 에셋을 프로젝트 공통 참조 모음에서 해석합니다.|PlayerControllerDefinition.cpp|GetConfiguredDefinitionReferences()
 UContentDataSubsystem>UPandoraDefinition|runtime|에셋 해석·조회|이름 → PrimaryAssetId → 정의|판도라 이름을 에셋 ID로 해석하고 로드된 Definition을 조회합니다. 아이콘·무기 조건·스킬 수치는 반환된 에셋에 있습니다.|ContentDataSubsystem.cpp|UPandoraDefinition* UContentDataSubsystem::
 UPandoraComponent>FPandoraSkillBinder|runtime|능력 부여 요청|정의·성장 레벨·방향|컴포넌트가 Binder에 판도라 정의와 레벨·방향을 전달하고 반환된 능력 핸들을 보관합니다.|PandoraComponent.cpp|FPandoraSkillBinder::GrantPandoraContent(
-FPandoraSkillBinder>UPandoraSkillSource|ownership|출처 객체 생성|ASC를 Outer로 생성|Binder가 ASC를 Outer로 Source를 만들고 정의·스킬 에셋·인덱스·슬롯 요구 레벨·방향을 초기화합니다. Source를 AbilitySpec.SourceObject로 연결해 GiveAbility합니다.|PandoraSkillBinder.cpp|NewObject<UPandoraSkillSource>(ASC)
-FPandoraSkillBinder>UPdAbilitySystemComponent|runtime|서버에서 능력 부여|FGameplayAbilitySpec + SourceObject|해금된 슬롯의 Ability 클래스로 Spec을 만들고 SourceObject에 SkillSource를 붙여 ASC에 부여합니다. 반환 핸들을 컴포넌트가 추적합니다.|PandoraSkillBinder.cpp|ASC->GiveAbility(Spec)
+FPandoraSkillBinder>UPandoraSkillSource|ownership|출처 객체 생성|ASC를 Outer로 생성|Binder가 ASC를 Outer로 Source를 만들고 정의·인덱스·슬롯 요구 레벨·방향을 초기화합니다. Source를 AbilitySpec.SourceObject로 연결해 GiveAbility합니다.|PandoraSkillBinder.cpp|NewObject<UPandoraSkillSource>(ASC)
+FPandoraSkillBinder>UPdAbilitySystemComponent|runtime|서버에서 능력 부여|FGameplayAbilitySpec + SourceObject|해금된 슬롯마다 USkillAbility 클래스로 Spec을 만들고 SourceObject에 SkillSource를 붙여 ASC에 부여합니다. 반환 핸들을 컴포넌트가 추적합니다.|PandoraSkillBinder.cpp|ASC->GiveAbility(Spec)
 UPdAbilitySystemComponent>UPandoraSkillSource|ownership|보관·복제 등록|GrantedPandoraSkillSources|ASC가 Source를 추적하고 권한이 있는 준비된 인스턴스에서 복제 서브오브젝트로 등록합니다.|PdAbilitySystemComponent.cpp|AddReplicatedSubObject(SkillSource)
 UPdGameplayAbility>UPandoraSkillSource|runtime|발동 출처 조회|Spec.SourceObject|GetCurrentSourceObject를 SkillSource로 해석해 판도라·스킬 인덱스·레벨·방향을 얻습니다. 방향별 피해 보정과 출처별 쿨다운 식별에 사용합니다.|PdGameplayAbility.cpp|return Cast<UPandoraSkillSource>(GetCurrentSourceObject())
 UPandoraComponent>UPandoraTreeComponent|runtime|성장 레벨 조회|GrantedPandoras의 Level|PlayerState의 Tree를 찾아 해당 판도라의 현재 성장 레벨을 읽습니다. 능력 슬롯 해금과 갱신의 기준입니다.|PandoraComponent.cpp|PlayerStateOwner->GetPandoraTreeComponent()
 USelectingPandoraAndWeaponComponent>UPandoraComponent|runtime|선택 전환 요청|선택 번호 → 방향·판도라|서버가 선택 번호를 방향으로 바꿔 해당 슬롯의 Definition을 조회하고 판도라 선택 변경을 요청합니다.|SelectingPandoraAndWeaponComponent.cpp|PandoraComponent->RequestPandoraSelectionForDirection
 USelectingPandoraAndWeaponComponent>UEquipmentComponent|runtime|장착 전환 요청|방향 + ItemInstance|선택한 방향에서 인벤토리의 무기를 찾고 Equipment에 장착을 요청합니다. 빈 슬롯이면 해제를 요청합니다.|SelectingPandoraAndWeaponComponent.cpp|Equipment->RequestWeaponSelectionForDirection
 ULevelingComponent>UBasicAttributeSet|runtime|속성 조회·변경|레벨·경험치·포인트|컴포넌트는 AttributeSet의 레벨/경험치 값을 조회하고 효과/태그로 성장 처리를 연결합니다.|LevelingComponent.cpp|UBasicAttributeSet
-UAbilityCostAndCooldownManager>USkillDefinition|runtime|비용·시간 조회|ManaCost / Time|능력의 출처 스킬 설정을 읽어 마나 비용과 쿨다운 시간을 처리합니다. 현재 남은 쿨다운은 설정 에셋에 저장하지 않습니다.|AbilityCostAndCooldownManager.cpp|GetSourceSkillDataAsset()
+UAbilityCostAndCooldownManager>USkillDefinition|runtime|비용·시간 조회|ManaCost / Time|능력의 출처 스킬 설정을 읽어 마나 비용과 쿨다운 시간을 처리합니다. 현재 남은 쿨다운은 설정 에셋에 저장하지 않습니다.|AbilityCostAndCooldownManager.cpp|Ability.ResolveSourceSkillDataAsset(
 UAttackAbility>UCombatComponent|runtime|공격 구간 실행|콤보·판정 창|Ability가 몸체의 CombatComponent를 조회해 공격 구간과 타격 처리를 연결합니다.|AttackAbility.cpp|UCombatComponent
 UCombatComponent>AWeaponBase|runtime|현재 무기 조회|무기 판정·피해 문맥|CombatComponent가 현재 무기를 조회해 무기 공격 판정과 피해 설정을 사용합니다.|CombatComponent.cpp|AWeaponBase
 AExperienceGameMode>ULevelDefinition|config|기본 맵 설정 조회|프로젝트 LevelDefinition|GameMode가 프로젝트 Definition 참조 모음의 맵 설정을 사용합니다.|ExperienceGameMode.cpp|GetConfiguredDefinitionReferences().LevelDefinition
@@ -136,9 +138,30 @@ UExperiencePlayerProfileService>UPlayerProfileSubsystem|runtime|입장 프로필
 UControllerProfileSyncComponent>UPlayerProfileSubsystem|runtime|로컬 외형 조회|프로필 스킨 정보|Controller의 동기화 컴포넌트가 프로필 서비스를 조회해 외형 데이터 동기화를 준비합니다.|ControllerProfileSyncComponent.cpp|GetSubsystem<UPlayerProfileSubsystem>
 UPandoraDefinition>UPandoraWidgetViewModel|projection|카드 표시로 투영|PandoraWidget / Builder 경유|중간 Widget/Builder가 판도라 정의와 성장 상태를 읽고 이름·아이콘·레벨·잠금 표시값을 ViewModel에 적용합니다. Definition이 ViewModel을 직접 소유하지 않습니다.|PandoraWidget.cpp|UPandoraWidgetViewModel* ViewModel
 UPandoraDefinition>UPandoraDescriptionViewModel|projection|설명 표시로 투영|DescriptionWidget / Builder 경유|Widget이 정의와 Tree로 설명 데이터를 만들고 제목·무기 조건·단계별 비용·스킬별 이름/설명/아이콘을 ViewModel에 전달합니다.|PandoraDescriptionWidget.cpp|FPandoraDescriptionViewDataBuilder::Build(
-UPandoraTreeComponent>UPandoraTreeViewModel|projection|포인트를 화면에 전달|PandoraTreeWidget 경유|TreeWidget이 컴포넌트의 남은 포인트를 읽어 ViewModel의 숫자와 표시 텍스트를 갱신합니다.|PandoraTreeWidget.cpp|ViewModel->SetPointsAvailable(PointsAvailable)
 UHealthBarViewModel>UBasicAttributeSet|runtime|속성 변경 구독|체력·최대 체력·경험치|ViewModel이 ASC의 AttributeSet 값 변경 델리게이트를 구독하고 체력/경험치 화면 값을 갱신합니다.|HealthBarViewModel.cpp|GetGameplayAttributeValueChangeDelegate(UBasicAttributeSet::GetHealthAttribute())
 UAbilitiesBarWidget>UAbilitySlotWidget|runtime|슬롯 생성·초기화|AbilitySpecHandle·스킬 인덱스|스킬 바가 생성한 Widget을 AbilitySlotWidget으로 해석해 능력 핸들과 슬롯별 표시 정보를 연결합니다.|AbilitiesBarWidget.cpp|UAbilitySlotWidget
+
+FPandoraSkillBinder>USkillAbility|runtime|공통 실행기 부여|슬롯마다 USkillAbility Spec|모든 판도라 슬롯은 같은 실행기 클래스를 사용하며 SourceObject로 스킬별 설정을 구분합니다.|PandoraSkillBinder.cpp|AbilityClass = USkillAbility::StaticClass()
+UPdAbilitySystemComponent>UStatUpgradeDefinition|runtime|초기값 계산 요청|CalculateInitialAttributeValues|정의가 기본값과 시작 투자분을 계산하고 최대 자원 우선 목록을 반환합니다. ASC는 태그 연결 검증 후 적용하며 복제 갱신을 한 번 요청합니다.|PdAbilitySystemComponent.cpp|Definition.CalculateInitialAttributeValues(InitialValues, ResourcesToFill)
+UPdAbilitySystemComponent>UBasicAttributeSet|runtime|속성 연결·적용|StatTag → FGameplayAttribute|ASC는 AttributeSet의 태그 해석으로 모든 대상 속성을 먼저 검증하고 SetNumericAttributeBase로 적용합니다.|PdAbilitySystemComponent.cpp|UBasicAttributeSet::ResolveAttributeFromStatTag(Entry.Key, Attribute)
+UStatUpgradeComponent>UPdAbilitySystemComponent|runtime|기본값 적용 요청|서버 초기화·중복 방지|컴포넌트가 정의 로드와 초기화 시점을 관리하고 ASC에 기본값 적용을 요청합니다.|StatUpgradeComponent.cpp|ApplyConfiguredAttributeDefaults(
+USkillDefinition>USkillAction|ownership|템플릿 내장|Instanced Action|에셋이 편집용 액션 트리를 내장합니다. 시전자별 실행 상태는 이 템플릿을 복제해 분리합니다.|SkillDefinition.h|TObjectPtr<USkillAction> Action;
+USkillAbility>USkillAction|ownership|시전 트리 복제|ActiveAction = DuplicateObject|SkillAbility를 Outer로 액션 트리를 복제하고 대상·위치·이벤트 문맥을 전달합니다. 종료 시 취소하고 참조를 비웁니다.|SkillAbility.cpp|ActiveAction = DuplicateObject<USkillAction>(Definition->Action, this)
+USkillAbility>USkillDefinition|runtime|스킬 실행 설정 조회|SkillType · Activation · Time|출처의 정의에서 종료 정책과 비용·시간을 읽습니다. DurationEndTime은 활성화 시점에 확정하며 액션들이 공유합니다.|SkillAbility.cpp|const USkillDefinition* Definition = GetSourceSkillDataAsset()
+UPandoraSkillSource>USkillDefinition|runtime|정의·인덱스로 조회|GetSkillDataAsset()|SkillDataAsset 포인터를 중복 저장하지 않습니다. PandoraDefinition.GetSkillDefinition(SkillIndex)로 실제 스킬을 반환합니다.|PandoraSkillSource.cpp|return Definition ? Definition->GetSkillDefinition(SkillIndex) : nullptr
+UPandoraSkillSource>UPdAbilitySystemComponent|runtime|출처별 쿨다운 조회|EffectSource = this|Outer ASC의 활성 효과 중 이 출처와 Cooldown 태그가 일치하는 효과를 조회합니다. 남은 시간과 효과 핸들을 별도 보관하지 않습니다.|PandoraSkillSource.cpp|Query.EffectSource = this
+UAbilityCostAndCooldownManager>UPandoraSkillSource|runtime|쿨다운 남은 시간 검사|GetCooldownTimeRemainingAndDuration|스킬 출처의 활성 효과를 조회해 재시전 가능 여부를 결정합니다.|AbilityCostAndCooldownManager.cpp|GetCooldownTimeRemainingAndDuration(
+UAbilityCostAndCooldownManager>UBasicAttributeSet|runtime|신비 보정 계산|CalculateCooldownDuration|스킬의 기본 시간을 AttributeSet의 Arcane 보정으로 계산하여 쿨다운 효과의 지속시간에 적용합니다.|AbilityCostAndCooldownManager.cpp|CalculateCooldownDuration(
+UAbilitySlotWidget>UPandoraSkillSource|runtime|출처별 시간 표시|GetCooldownTimeRemainingAndDuration|슬롯의 Spec.SourceObject를 통해 출처별 활성 쿨다운의 남은 시간과 전체 시간을 읽습니다.|AbilitySlotWidget.cpp|GetCooldownTimeRemainingAndDuration(
+USkillProjectileCastAction>USkillAbility|runtime|공통 시전 기능 사용|GetAbility()|조준·발사는 액션이 담당하고 비용 확정·피해 Spec·종료 시점은 공통 실행기 기능을 호출합니다.|SkillProjectileCastAction.cpp|GetAbility()
+UReactiveStatusEffectAbility>UBasicAttributeSet|runtime|상태 피해 Spec 기록|SetStatusEffectDamageOnSpec|발동 효과의 기본 피해를 상태별 보너스로 보정하고 Data_Damage에 기록합니다.|ReactiveStatusEffectAbility.cpp|UBasicAttributeSet::SetStatusEffectDamageOnSpec(
+UStatusEffectReplicationComponent>UStatusEffectDefinition|runtime|스택 수명 기준|FullStackLifetimeSeconds = 20s|누적 효과를 공통 대기 1초와 전체 20초 기준으로 감소시킵니다. 이 상수는 에셋 인스턴스 필드가 아닌 StatusEffectTiming 네임스페이스에 정의됩니다.|StatusEffectReplicationComponent.cpp|StatusEffectTiming::FullStackLifetimeSeconds
+
+USkillSequenceAction>USkillAction|reference|상속 · 자식 보관|Actions[]|공통 액션을 상속하며 Actions 배열로 자식 액션들을 보관합니다. NextIndex 순서로 실행하고 결과 문맥을 다음 자식에 전달합니다.|SkillAction.h|TArray<TObjectPtr<USkillAction>> Actions;
+USkillParallelAction>USkillAction|reference|상속 · 자식 보관|Actions[]|공통 액션을 상속하며 자식 목록을 동시에 시작합니다. Remaining이 모두 소진되면 완료하고 실패 시 나머지를 취소합니다.|SkillAction.cpp|void USkillParallelAction::OnStart()
+USkillRepeatAction>USkillAction|reference|상속 · 반복 복제|Action → Current|공통 액션을 상속하며 반복할 템플릿과 현재 실행 복제본을 분리합니다. Count·Interval과 공통 DurationEndTime에 맞춰 반복합니다.|SkillActions.cpp|Current = DuplicateObject<USkillAction>(Action, this)
+AProjectileBase>UStatusEffectReplicationComponent|runtime|적중 스택 추적 요청|TrackAppliedStatusEffect|누적 Spec 적용에 성공하면 대상의 복제 컴포넌트에 효과 핸들을 전달하여 스택 변화와 감소를 추적합니다.|ProjectileBase.cpp|ReplicationComponent->TrackAppliedStatusEffect(
+UReactiveStatusEffectAbility>UStatusEffectReplicationComponent|runtime|누적 효과 추적|TrackAppliedStatusEffect|발동 기준을 검사할 때 누적 효과를 복제 컴포넌트에 연결합니다. 효과 발동 성공 후 누적 스택을 제거합니다.|ReactiveStatusEffectAbility.cpp|StatusReplicationComponent->TrackAppliedStatusEffect(
 '''
 
 def relationships():

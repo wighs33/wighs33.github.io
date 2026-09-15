@@ -23,7 +23,6 @@
     "names": [
       "UPandoraComponent",
       "UPandoraDefinition",
-      "UPandoraInstance",
       "UPandoraSkillSource",
       "FPandoraSkillBinder",
       "UPandoraTreeComponent",
@@ -39,15 +38,20 @@
     "title": "GAS와 전투 실행",
     "names": [
       "UPdAbilitySystemComponent",
+      "USkillAbility",
+      "USkillAction",
+      "USkillSequenceAction",
+      "USkillParallelAction",
+      "USkillRepeatAction",
+      "USkillProjectileCastAction",
+      "UReactiveStatusEffectAbility",
       "UPdGameplayAbility",
       "UBasicAttributeSet",
       "UAbilityGrantAndInputManager",
       "UAbilityCostAndCooldownManager",
-      "UAbilityAttributeManager",
       "UAbilityPresentationManager",
       "UCombatComponent",
       "UAttackAbility",
-      "UProjectileAbility",
       "AProjectileBase",
       "UCharacterDeathComponent",
       "UStatusEffectDefinition",
@@ -63,9 +67,6 @@
       "UItemDefinition",
       "UEquipmentComponent",
       "AWeaponBase",
-      "ASword",
-      "AGun",
-      "ABow",
       "UPlayerRewardComponent",
       "URewardDefinition",
       "UDefaultPlayerProvisioner",
@@ -137,20 +138,19 @@
     "names": [
       "UUiSubsystem",
       "UHudUiRouter",
-      "UPlayerHudWidget",
       "UInfoLoadoutStore",
       "UInfoUiPresenter",
       "UInfoPandoraTabPresenter",
       "UPandoraWidgetViewModel",
       "UPandoraDescriptionViewModel",
-      "UPandoraTreeViewModel",
       "UHealthBarViewModel",
       "UAbilitiesBarWidget",
       "UAbilitySlotWidget",
       "UWidgetClassDefinition",
       "UShopWidget",
       "UShopCatalogDefinition",
-      "UPandoraDescriptionWidget"
+      "UPandoraDescriptionWidget",
+      "UStatusEffectWidget"
     ]
   }
 ]

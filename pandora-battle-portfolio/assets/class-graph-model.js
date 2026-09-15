@@ -4,15 +4,26 @@
   const W=276, GAP=72, COL=W+GAP;
   // A row is a compact field group. Every key is checked against the source schema.
   const ROWS={
+    UAbilityGrantAndInputManager:["HoldAbilityHandlesByInputTag","PendingHoldReleases","PendingRemoteActivations"],
+    UStatUpgradeDefinition:["AttributeDefaultValues","UpgradeRules","PairedResourceStatTags","MaxInvestedLevel"],
+    UStatusEffectWidget:["EffectDataAsset","CurrentStackCount","BoundStatusEffectReplicationComponent","StackFillDecreaseStartTime","StackFillDecreaseStartPercent","EffectFillMeter,EffectAppliedTimeLeft"],
+    UStatusEffectReplicationComponent:["ReplicatedStacks","StatusEffectDecayStates","TrackedActiveEffects","BoundAbilitySystemComponent"],
+    UStatusEffectDefinition:["StackTag,StackGameplayEffectClass","MaxStackCount","StatusEffectTag,StatusEffectClass","StatusDuration,DamageMagnitude","Icon,IconBackgroundColor"],
+    UReactiveStatusEffectAbility:["StatusEffectDataAsset","WaitGameplayEffectAppliedTask"],
+    USkillProjectileCastAction:["Settings","ReadiedProjectile","TargetDataTask,ConfirmCancelTask","SocketBarrageProjectiles"],
+    USkillRepeatAction:["Action","Current","Count,Interval","CompletedCount,Timer"],
+    USkillParallelAction:["Actions","Remaining"],
+    USkillSequenceAction:["Actions","NextIndex"],
+    USkillAction:["OwningAbility","ExecutionContext","OnFinished,bRunning"],
+    USkillAbility:["ActiveAction","ActivationTime,DurationEndTime","DurationTimer","UsesSinceCooldown,bSkillCommitted"],
     APdPlayerState:['AbilitySystemComponent','BasicAttributeSet','PandoraComponent','PandoraTreeComponent','InventoryComponent','PlayerMatchComponent'],
-    UPdAbilitySystemComponent:['GrantedPandoraSkillSources','ActivationsWaitingForSource','AbilityGrantAndInputManager','AttributeManager'],
-    UPandoraSkillSource:['PandoraDefinition','SkillDataAsset','SkillIndex','PandoraLevel','LoadoutDirection'],
-    UPandoraDefinition:['DisplayName,Description','IconTexture,IdTag','ActivatableWeaponTags','MaxLevel,PointsRequiredPerLevel','UnlockRules','Skill','Tier,ShopData'],
-    USkillDefinition:['Name,Icon','ManaCost','Damage','Time','AbilitiesToGrant','ProjectileSettings','StatusEffectDataAsset'],
+    UPdAbilitySystemComponent:["GrantedPandoraSkillSources","ActivationsWaitingForSource","AbilityGrantAndInputManager"],
+    UPandoraSkillSource:["PandoraDefinition","SkillIndex","PandoraLevel","LoadoutDirection"],
+    UPandoraDefinition:["DisplayName,Description","IconTexture,IdTag","ActivatableWeaponTags","MaxLevel,PointsRequiredPerLevel","UnlockRules","Skills","Tier,ShopData"],
+    USkillDefinition:["SkillType","Activation","Action","ManaCost","Time","Damage","StatusEffectDataAsset,StackCount"],
     UPandoraComponent:['AllPandoraList','CurrentPandoraDefinition','PandoraLoadoutSlots','GrantedPandoraAbilityHandles'],
     UPandoraTreeComponent:['GrantedPandoras','PointsAvailable','InitialGrantedPandoras,InitialPointsAvailable'],
-    UPandoraInstance:['PandoraDefinition','IsOwned'],
-    UBasicAttributeSet:['Health,MaxHealth','Mana,MaxMana','Stamina,MaxStamina','Level,Experience','Strength,Intelligence,Armor'],
+    UBasicAttributeSet:["Health,MaxHealth","Mana,MaxMana","Stamina,MaxStamina","Arcane","Burn,Frostbite,ElectricShock","Level,Experience"],
     UInventoryComponent:['AllItemList','WeaponIdsByLoadoutSlot','ConsumableQuickSlotItemIds','EquippedItemSlots'],
     UItemInstance:['ItemDefinition','ItemId','Quantity,UpgradeLevel','Map_EnhancedStat_Magnitude'],
     UItemDefinition:['DisplayName,IdTag','Map_Stat_Magnitude','ConsumeGameplayEffectClass','WeaponData','ShopData'],
@@ -35,7 +46,7 @@
     UEnemyBaseDefinition:['Combat','TrainingBot','MonsterStateTree','MonsterMaxHealth'],
     APdHUD:['UiRouter','WidgetClassDefinition','CachedPlayerHUD','CachedInfoUiPresenter'],
     UHudUiRouter:['OwnerHud','ActiveDefinition','MenuLayer','ScreenLayer','ScoreboardLayer'],
-    UInfoLoadoutStore:['BoundInventoryComponent','BoundPandoraComponent','LeftWeapon,UpWeapon,RightWeapon','LeftPandora,UpPandora,RightPandora'],
+    UInfoLoadoutStore:["BoundInventoryComponent","BoundPandoraComponent","LeftWeapon,UpWeapon,RightWeapon","LeftPandoraDefinition,UpPandoraDefinition,RightPandoraDefinition"],
     UInfoUiPresenter:['LoadoutStore','StatusPresenter','ItemPresenter','PandoraPresenter'],
     UPandoraDescriptionWidget:['PandoraDefinition','PandoraTreeComponent','PandoraDescriptionViewModel'],
     ALobbyGameMode:['MatchCoordinator','TravelCoordinator','DefaultPlayerProvisioner'],
@@ -43,8 +54,14 @@
     UCombatComponent:['CombatDamageSettings','UnarmedCombatSettings','HitActorsInCurrentUnarmedAttack','ActiveComboDamageMultiplier']
   };
   const NESTED={
+    'UPandoraComponent.AllPandoraList':[['Pandoras']],
+    'USkillAction.ExecutionContext':[['TargetActor','Transform'],['EventData']],
+    'USkillDefinition.Activation':[['Tags','OwnedTags'],['UsesPerCooldown']],
+    'USkillProjectileCastAction.Settings':[['ProjectileActorClass','ProjectileSpeed'],['FireMode','FireEventTag']],
+    'UStatUpgradeDefinition.AttributeDefaultValues':[['StatTag','DefaultValue'],['ValuePerUpgrade','Priority']],
+    'UStatUpgradeDefinition.PairedResourceStatTags':[['MaxStatTag','CurrentStatTag']],
+    'UStatusEffectReplicationComponent.ReplicatedStacks':[['Entries']],
     'UPandoraDefinition.UnlockRules':[['RequiredPandora','RequiredLevel']],
-    'UPandoraDefinition.Skill':[['SkillDefinition']],
     'UPandoraTreeComponent.GrantedPandoras':[['Pandora','Level']],
     'USkillDefinition.Time':[['CooldownDuration','Duration']],
     'USkillDefinition.Damage':[['GameplayEffectClass','Magnitude']],
@@ -53,22 +70,28 @@
   };
   // Shared objects appear once per view. Other core nodes open their canonical view.
   const VIEWS={
+    UStatUpgradeDefinition:[["APdPlayerState",0,0],["UStatUpgradeComponent",1,0],["UStatUpgradeDefinition",0,340],["UPdAbilitySystemComponent",1,340],["UBasicAttributeSet",2,340],["UAbilityGrantAndInputManager",1,820]],
+    UStatusEffectReplicationComponent:[["ACharacterBase",0,0],["UStatusEffectDefinition",1,0],["UReactiveStatusEffectAbility",2,0],["AProjectileBase",0,400],["UStatusEffectReplicationComponent",1,400],["UStatusEffectWidget",2,400]],
+    UStatusEffectDefinition:[["USkillDefinition",0,0],["UStatusEffectDefinition",1,0],["UReactiveStatusEffectAbility",2,0],["AProjectileBase",0,450],["UStatusEffectReplicationComponent",1,450],["UBasicAttributeSet",2,450],["UStatusEffectWidget",1,820]],
+    USkillDefinition:[["UPandoraDefinition",0,0],["UPandoraSkillSource",2,0],["USkillDefinition",1,330],["USkillAbility",0,330],["USkillAction",2,330],["UAbilityCostAndCooldownManager",0,830],["UStatusEffectDefinition",1,830],["USkillProjectileCastAction",2,830]],
+    USkillAction:[["USkillDefinition",0,0],["USkillAbility",2,0],["USkillAction",1,330],["USkillSequenceAction",0,690],["USkillParallelAction",1,690],["USkillRepeatAction",2,690],["USkillProjectileCastAction",0,1040],["AProjectileBase",1,1040]],
+    USkillAbility:[["UPandoraSkillSource",0,0],["USkillAbility",1,0],["UPdGameplayAbility",2,0],["USkillDefinition",0,340],["USkillAction",1,340],["UAbilityCostAndCooldownManager",2,340],["USkillSequenceAction",0,770],["USkillParallelAction",1,770],["USkillRepeatAction",2,770]],
     APdPlayerState:[['APdPlayerState',0,0],['UPdAbilitySystemComponent',1,0],['UBasicAttributeSet',2,0],['UPandoraComponent',0,290],['UPandoraSkillSource',1,290],['UInventoryComponent',2,290],['UPandoraTreeComponent',0,580],['UPandoraDefinition',1,580]],
     APdPlayerController:[['APdPlayerController',1,0],['UPlayerControllerDefinition',0,0],['UPdGameInstanceDefinition',2,0],['UControllerInputComponent',0,290],['UControllerSessionComponent',1,290],['UControllerProfileSyncComponent',2,290],['UControllerInputDefinition',0,560],['UOnlineSessionsSubsystem',1,560],['UPlayerProfileSubsystem',2,560]],
-    UPdAbilitySystemComponent:[['UPdAbilitySystemComponent',1,0],['FPandoraSkillBinder',0,0],['UAbilityGrantAndInputManager',0,250],['UPandoraSkillSource',1,250],['UPandoraDefinition',2,250],['UAbilityAttributeManager',0,560],['UPdGameplayAbility',1,560],['USkillDefinition',2,620]],
+    UPdAbilitySystemComponent:[["APdPlayerState",0,0],["UPdAbilitySystemComponent",1,0],["UAbilityGrantAndInputManager",2,0],["UStatUpgradeDefinition",0,360],["UPandoraSkillSource",1,360],["UPandoraDefinition",2,360],["UBasicAttributeSet",0,740],["USkillAbility",1,740],["USkillDefinition",2,740],["FPandoraSkillBinder",1,1090]],
     UPandoraSkillSource:[['UPdAbilitySystemComponent',1,0],['FPandoraSkillBinder',0,0],['UPdGameplayAbility',2,0],['UPandoraSkillSource',1,260],['UPandoraDefinition',0,540],['USkillDefinition',2,540]],
     UPandoraDefinition:[['UPandoraSkillSource',0,0],['UPandoraTreeComponent',1,0],['UPandoraComponent',2,0],['UPandoraDefinition',1,280],['UPandoraDescriptionWidget',0,590],['USkillDefinition',1,620],['UPandoraDescriptionViewModel',2,590]],
-    UPandoraComponent:[['USelectingPandoraAndWeaponComponent',0,0],['UPandoraComponent',1,0],['UPandoraInstance',0,270],['UPandoraDefinition',1,270],['UPandoraTreeComponent',2,270],['FPandoraSkillBinder',0,600],['USkillDefinition',1,610],['UPandoraSkillSource',2,600]],
+    UPandoraComponent:[["USelectingPandoraAndWeaponComponent",0,0],["UPandoraComponent",1,0],["UPandoraDefinition",0,350],["UPandoraTreeComponent",2,350],["FPandoraSkillBinder",1,350],["USkillDefinition",0,730],["USkillAbility",1,730],["UPandoraSkillSource",2,730]],
     UInventoryComponent:[['APdPlayerState',0,0],['UInventoryComponent',1,0],['USelectingPandoraAndWeaponComponent',2,0],['UItemInstance',1,280],['UEquipmentComponent',2,280],['UItemDefinition',1,540],['AWeaponBase',2,560]],
     APdPlayer:[['APdPlayer',1,0],['APdPlayerState',0,230],['ACharacterBase',1,230],['UPlayerPawnDefinition',2,230],['UEquipmentComponent',0,540],['UCharacterDeathComponent',1,540],['UStatusEffectReplicationComponent',2,540]],
-    UPdGameplayAbility:[['UPandoraSkillSource',0,0],['UPdGameplayAbility',1,0],['UAttackAbility',2,0],['USkillDefinition',0,280],['UAbilityCostAndCooldownManager',1,280],['UAbilityPresentationManager',2,280],['UProjectileAbility',1,610],['AProjectileBase',2,610]],
+    UPdGameplayAbility:[["UPandoraSkillSource",0,0],["UPdGameplayAbility",1,0],["UAttackAbility",2,0],["USkillDefinition",0,330],["UAbilityCostAndCooldownManager",1,330],["UAbilityPresentationManager",2,330],["USkillAbility",1,710],["USkillAction",2,710]],
     UPlayerProfileSubsystem:[['UControllerProfileSyncComponent',0,0],['UPlayerProfileSubsystem',1,0],['UExperiencePlayerProfileService',2,0],['UPdSaveGame',0,280],['UProfileSaveEnvelope',2,280]],
     AExperienceGameMode:[['AExperienceGameMode',1,0],['UMatchRuleDefinition',0,0],['ULevelDefinition',2,0],['UExperienceMatchFlowComponent',0,260],['UExperienceSpawnComponent',1,260],['UExperiencePlayerProvisioningComponent',2,260],['UExperiencePlayerProfileService',1,540],['UDefaultPlayerProvisioner',2,540]],
     UExperienceManagerComponent:[['AExperienceGameState',0,0],['UExperienceManagerComponent',1,260],['ALobbyGameState',2,0],['UExperienceDefinition',1,530]],
     ALobbyGameMode:[['ALobbyGameMode',1,0],['ULobbyMatchCoordinator',0,260],['ULobbyTravelCoordinator',1,260],['ULobbyConfigurationComponent',2,260],['UOnlineSessionsSubsystem',0,520],['ULevelDefinition',2,520],['UDefaultPlayerProvisioner',0,0]],
     AEnemyBase:[['AMonsterCharacter',0,0],['AEnemyBase',1,0],['AMonsterAIController',2,0],['UPdAbilitySystemComponent',0,280],['UEnemyBaseDefinition',1,280],['UEnemyTrainingBotComponent',2,280],['UEnemyCombatComponent',1,590],['UItemDefinition',2,590]],
     APdHUD:[['APdHUD',1,0],['UHudUiRouter',0,260],['UInfoUiPresenter',1,260],['UWidgetClassDefinition',2,260],['UUiSubsystem',0,570],['UInfoLoadoutStore',1,570],['UInfoPandoraTabPresenter',2,570]],
-    UInfoLoadoutStore:[['UInfoUiPresenter',0,0],['UInfoLoadoutStore',1,0],['UInfoPandoraTabPresenter',2,0],['UInventoryComponent',0,280],['UPandoraComponent',2,280],['UItemInstance',0,550],['UPandoraDefinition',1,550],['UPandoraInstance',2,550]]
+    UInfoLoadoutStore:[["UInfoUiPresenter",0,0],["UInfoLoadoutStore",1,0],["UInfoPandoraTabPresenter",2,0],["UInventoryComponent",0,380],["UPandoraComponent",2,380],["UItemInstance",0,740],["UPandoraDefinition",1,740]],
   };
   const cleanType=s=>s.replace(/\b(?:const|mutable|static)\s+/g,'').replace(/T(?:WeakObjectPtr|ObjectPtr|SoftObjectPtr|SoftClassPtr)<(.+)>/g,'$1*').replace(/TArray<(.+)>/g,'$1[]').replace(/TMap<.+>/g,'Map').replace(/TSet<.+>/g,'Set').replace(/FGameplayAttributeData/g,'Attribute').replace(/FGameplayTagContainer/g,'Tags').replace(/FGameplayTag/g,'Tag');
   function typeOf(f){return cleanType(f.declaration.slice(0,f.declaration.search(new RegExp('\\b'+f.key+'\\b'))).trim());}
@@ -125,8 +148,8 @@
     if(landscape){
       const wideOrder={
         APdPlayerState:['APdPlayerState','UPdAbilitySystemComponent','UPandoraSkillSource','UPandoraDefinition','UPandoraComponent','UPandoraTreeComponent','UBasicAttributeSet','UInventoryComponent'],
-        UPdAbilitySystemComponent:['UPdAbilitySystemComponent','UPandoraSkillSource','UPandoraDefinition','USkillDefinition','FPandoraSkillBinder','UAbilityGrantAndInputManager','UAbilityAttributeManager','UPdGameplayAbility'],
-        UPandoraComponent:['UPandoraComponent','UPandoraInstance','UPandoraDefinition','USkillDefinition','USelectingPandoraAndWeaponComponent','UPandoraTreeComponent','FPandoraSkillBinder','UPandoraSkillSource']
+        UPdAbilitySystemComponent:['APdPlayerState','UPdAbilitySystemComponent','UPandoraSkillSource','UPandoraDefinition','USkillDefinition','UStatUpgradeDefinition','UBasicAttributeSet','UAbilityGrantAndInputManager','FPandoraSkillBinder','USkillAbility'],
+        UPandoraComponent:['UPandoraComponent','UPandoraDefinition','USkillDefinition','USkillAbility','USelectingPandoraAndWeaponComponent','UPandoraTreeComponent','FPandoraSkillBinder','UPandoraSkillSource']
       };
       const order=!expanded&&wideOrder[root]||nodes.map(n=>n.name),cols=Math.min(5,Math.ceil(nodes.length/2));
       let top=0;

@@ -10,7 +10,7 @@
     if(loading)return loading;
     failed=false;
     loading=new Promise((resolve,reject)=>{
-      const script=document.createElement('script');script.src='assets/field-usage-data.js?v=members-1';
+      const script=document.createElement('script');script.src='assets/field-usage-data.js?v=gas-3';
       script.onload=()=>{
         if(window.PANDORA_FIELD_USAGE?.meta.commit===window.PANDORA_CLASS_MAP.meta.commit)resolve();
         else{delete window.PANDORA_FIELD_USAGE;script.remove();reject(Error('Source revision mismatch'));}
