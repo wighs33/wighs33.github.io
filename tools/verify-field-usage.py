@@ -74,11 +74,12 @@ def verify(repo):
     for owner,fields in data['classes'].items():
         assert set(fields)=={f['key'] for f in classes[owner]['fields']}
         for key,doc in fields.items():
-            assert len(doc['purpose'])>15,(owner,key)
+            assert doc['purpose'].strip() and (len(doc['purpose'])>15 or doc['purposeBasis']=='source-comment'),(owner,key)
             ids=[u['function'] for u in doc['uses']];assert len(ids)==len(set(ids))
             for use in doc['uses']:
                 fn=data['functions'][use['function']]
-                assert re.search(r'\b'+re.escape(fn['name'])+r'\b', '\n'.join(lines(fn['path'])[fn['line']-1:fn['line']+8])) or fn['generated'],fn
+                name_pattern = (r'\boperator\s*'+re.escape(fn['name'][8:])) if fn['name'].startswith('operator') else r'(?<!\w)'+re.escape(fn['name'])+r'(?!\w)'
+                assert re.search(name_pattern, '\n'.join(lines(fn['path'])[fn['line']-1:fn['line']+8])) or fn['generated'],fn
                 assert fn['url'].endswith('#L'+str(fn['line'])) and data['meta']['commit'] in fn['url']
                 assert use['access'] in ('direct','getter')
                 for hit in use['evidence']:
@@ -95,9 +96,9 @@ def verify(repo):
                 assert use['access']=='direct' if fn['generated'] or any(not h['via'] for h in use['evidence']) else use['access']=='getter'
     def names(owner,key):return {data['functions'][u['function']]['owner']+'::'+data['functions'][u['function']]['name'] for u in data['classes'][owner][key]['uses']}
     assert 'APdPlayerState::GetAbilitySystemComponent' in names('APdPlayerState','AbilitySystemComponent')
-    assert 'APdPlayerController::PostProcessInput' in names('APdPlayerState','AbilitySystemComponent')
-    assert 'UPdGameplayAbility::PreActivate' in names('UPandoraSkillSource','PandoraDefinition')
-    ability_use=next(u for u in data['classes']['UPandoraSkillSource']['PandoraDefinition']['uses'] if data['functions'][u['function']]['owner']=='UPdGameplayAbility' and data['functions'][u['function']]['name']=='PreActivate')
+    assert 'APdPlayer::GetAbilitySystemComponent' in names('APdPlayerState','AbilitySystemComponent')
+    assert 'USkillAbility::PreActivate' in names('UPandoraSkillSource','PandoraDefinition')
+    ability_use=next(u for u in data['classes']['UPandoraSkillSource']['PandoraDefinition']['uses'] if data['functions'][u['function']]['owner']=='USkillAbility' and data['functions'][u['function']]['name']=='PreActivate')
     assert ability_use['access']=='getter' and 'UPandoraSkillSource::GetPandoraDefinition()' in ability_use['via']
     assert 'UPandoraSkillSource::Initialize' in names('UPandoraSkillSource','PandoraDefinition')
     assert 'FPandoraSkillBinder::GrantPandoraContent' in names('UPandoraDefinition','Skills')

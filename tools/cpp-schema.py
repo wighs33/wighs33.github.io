@@ -127,3 +127,21 @@ def declared_types(root):
 
     visit(root)
     return found
+
+
+def base_types(clause):
+    """Only actual direct bases; template arguments are not additional parents."""
+    if clause is None:
+        return []
+    result = []
+    for child in clause.named_children:
+        if child.type == 'access_specifier':
+            continue
+        if child.type == 'template_type':
+            result.append(text(child.child_by_field_name('name')))
+        elif child.type in ('type_identifier','qualified_identifier'):
+            value = text(child).split('<',1)[0].strip()
+            result.append(value)
+        else:
+            raise ValueError('Unhandled base type: '+child.type+' '+text(child))
+    return result

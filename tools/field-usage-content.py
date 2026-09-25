@@ -2,6 +2,11 @@
 import re
 
 NOTES = '''
+UPandoraComponent.OwnedSkillSources|이 컴포넌트를 Outer로 생성한 판도라 스킬 출처들을 보관합니다. 서버 복제 서브오브젝트 등록과 클라이언트 출처 도착·제거, 능력 제거 및 EndPlay 정리를 연결합니다.
+UPandoraComponent.SourceAbilitySystemComponent|능력 제거 이벤트를 구독한 ASC를 약하게 참조합니다. 출처가 더 이상 사용되지 않는 시점을 확인하고 이벤트 연결을 해제할 때 사용합니다.
+UPandoraComponent.AbilityRemovedHandle|ASC의 OnAbilityRemovedNative에 등록한 구독 핸들입니다. 능력 제거 시 사용하지 않는 스킬 출처를 정리하고 종료 시 구독을 해제합니다.
+UPdAbilitySystemComponent.OnAbilityRemovedNative|능력 제거 처리가 끝난 Spec을 외부에 알립니다. PandoraComponent가 이 알림으로 출처 객체의 사용 여부를 검사하고 수명을 정리합니다.
+USkillAbility.UsesSinceCooldown|UsesPerCooldown이 2 이상일 때 여러 시전에 걸친 사용 횟수를 보관합니다. CommitSkill에서 허용 횟수 도달 시 0으로 되돌리고 정상 종료 시 쿨다운 조건으로 사용합니다.
 USkillDefinition.Description|스킬 툴팁과 판도라 상세 화면에 표시할 설명 원문입니다. UI 데이터 Builder와 스킬 설명 위젯이 읽어 표시 문구를 구성합니다.
 APdPlayerState.AbilitySystemComponent|플레이어의 능력·효과·속성을 실행하는 ASC를 PlayerState 수명에 연결해 둡니다. 캐릭터와 입력·소모품 처리에서 같은 실행기에 접근하도록 반환합니다.
 APdPlayerState.BasicAttributeSet|체력·마나·레벨 등 GAS 속성의 저장 객체를 PlayerState의 기본 서브오브젝트로 생성해 유지합니다. 이 포인터의 직접 사용은 생성자이며, 실제 수치 처리는 UBasicAttributeSet과 GAS 쪽에서 이뤄집니다.
@@ -75,7 +80,6 @@ USkillAbility.ActivationTime|이번 활성화가 시작된 월드 시각입니�
 USkillAbility.DurationEndTime|Duration 스킬의 하나의 절대 종료 시점입니다. -1은 기한 없는 종료 정책을 뜻하며 액션·반복·연출이 GetRemainingDuration으로 같은 남은 시간을 읽습니다.
 USkillAbility.DurationTimer|Duration 만료 또는 Press 최소 유지 시간 도달 시 Ability를 끝낼 타이머입니다. Ability가 끝나면 타이머도 해제합니다.
 USkillAbility.bSkillCommitted|이번 시전이 비용을 이미 확정했는지 기록해 여러 액션이 CommitSkill을 호출해도 한 번만 차감합니다. 정상 종료의 쿨다운 적용 조건으로도 확인합니다.
-USkillAbility.UsesSinceCooldown|쿨다운까지 허용되는 연속 사용 횟수를 추적합니다. 정의의 UsesPerCooldown과 레벨 배율 기준에 도달하면 0으로 되돌리고 정상 종료 시 쿨다운을 적용합니다.
 USkillAction.OwningAbility|이번 액션의 실행기를 약하게 참조합니다. 파생 액션이 GetAbility로 공통 GAS 작업·피해 생성·남은 시간에 접근하며 실행기를 소유하지는 않습니다.
 USkillAction.ExecutionContext|현재 대상 Actor·Transform·GameplayEventData를 묶습니다. 결과 문맥을 다음 액션에 전달해 이벤트 대기·조준·투사체 적중 이후 단계를 같은 트리로 연결합니다.
 USkillAction.OnFinished|이 액션의 성공·실패 완료를 부모 액션이나 SkillAbility에 전달하는 델리게이트입니다. 순차 진행·병렬 잔여 수·Ability 종료를 연결합니다.

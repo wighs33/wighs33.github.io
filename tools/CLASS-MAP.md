@@ -1,113 +1,81 @@
-# Pandora Battle core class atlas
+# Pandora Battle complete class tree
 
-The portfolio embeds `pandora-battle-portfolio/class-map.html`. Nine category
-buttons and a ranked selector navigate 100 selected C++ classes. The center is
-one UML-like canvas: actual fields and nested struct members live inside each
-block, and directed edges show ownership, references and runtime relationships.
-A shared class occurs only once within a view.
+The portfolio embeds `pandora-battle-portfolio/class-map.html`. The previous
+100-class UML canvas and selection criteria have been removed. The source
+browser includes every class/struct definition in `Source/LabProject/**/*.h`,
+plus named enum and helper namespace declarations. Implementation-local types
+in `.cpp`, editor-module types, and third-party/engine source are outside this
+published header index. C++ usage is scanned across the project's Source files.
 
-A block opens that class's canonical graph. Its separate GitHub link opens the
-commit-pinned header. The `내용` button and edge clicks open the independent,
-initially collapsed detail section below the canvas without changing the graph.
-The detail section adds searchable member purposes and source-linked usage lists
-while preserving declarations, nested schemas, related data previews and source
-evidence. Static `class-index.html` provides
-all 100 header links.
+The September 25 revision pins `36e83199333f44de7e5f836c02b6ad731f63eb2a`:
+322 classes, 205 structs, 19 namespaces, 33 enums, 4,421 members and 5,968
+declared functions across 358 headers. Counts are generated, not a limit.
 
-`assets/class-graph-model.js` defines compact field compartments, curated hub
-views and direct-neighbor views for other core classes. An orthogonal A* router
-reserves tracks, avoids node rectangles, and penalizes bends, overlaps and
-crossings. Wider canvases use a landscape layout. Pan, zoom, fit, highlighted
-relationships and a large view help explore dense views. No CDN or layout
-runtime is required. Do not restore the earlier repeated two-block lanes.
+## Navigation
 
-The source of selection is `core-class-selection.json`. Class roles and field
-meanings are in `core-class-content.py`; semantic runtime/projection edges and
-editorial reading paths are in `core-class-flows.py`. Those reading paths remain
-source-validation metadata, not separate diagrams in the UI. `cpp-schema.py`
-contains the Unreal-aware C++ parsing utilities.
+- Folder view uses actual paths. Inside a folder, same-folder derived classes
+  appear beneath their parent. Cross-folder bases remain explicit row labels.
+- Inheritance view ignores folders and shows the first direct base as a tree
+  parent. All direct bases, including interfaces, are listed in the details.
+  Template arguments never become additional parents.
+- Classes and other declarations have separate type badges. Data/helper groups
+  can be expanded; search covers names, paths, members and function names.
+- Clicking a name opens its details below the tree. The separate GitHub link
+  opens its commit-pinned declaration. Search remains intact when a selection
+  changes. Back-to-tree, history, type filters and expand/collapse are supported.
+- Details contain the source summary, every declared member, purpose, direct
+  uses and verified Getter callers, function declarations/comments, inheritance
+  and member-type connections. Empty classes still have function/source details.
+- The tree and detail lists scroll internally. Embedded height messages retain
+  the same-origin, exact-source check in `site.js` and remain within its bound.
+
+## Corrections to the supplied outline
+
+The supplied outline is a starting point, not declaration evidence. Latest
+source headers determine names, kinds, locations and direct inheritance.
+
+| Supplied entry | Verified representation |
+| --- | --- |
+| `UPandoraSkillBinder` | `FPandoraSkillBinder`, a C++ class |
+| `USkillActions` | File containing Wait/Event/Montage/Dash/Effect/Area/Spawn/Projectile/Repeat action classes |
+| `ASword` directly under `AWeaponBase` | `AMeleeWeapon`; `ARangedWeaponBase` is the base of `ABow` and `AGun` |
+| `FStateTree_PdUtilityTasks` and similar file names | Actual task/condition structs declared inside those headers |
+| `FCharacterHitValidation`, `UTargetValidator` | `PdCharacterHitValidation`, `PdTargetValidator` namespaces |
+| `ASkillGroundProjection` | `PdSkillGroundProjection` namespace and `FGroundProjectionResult` |
+| `UWidgetContentBundle` | `EWidgetContentBundle` / `EWidgetContentBundleState` enums |
+| `UItemViewData`, `UFilterButtonHighlight` | `FItemViewData`, `FItemViewDataBuilder`, `FFilterButtonHighlightState` |
+| `UPandoraLoadoutUiModel` | `FPandoraLoadoutUiModel` |
+| Engine base names | Non-project inheritance nodes, not invented project classes |
+
+The new revision also moves source ownership/replication from ASC to
+`UPandoraComponent.OwnedSkillSources`; source data now has three fields, with
+the old PandoraLevel field removed. Skill-specific source resolution is in
+`USkillAbility`. Reviewed explanations are updated accordingly.
+
+## Rebuild and verification
 
 ```sh
 python -m pip install tree-sitter==0.25.2 tree-sitter-cpp==0.23.4
 python tools/build-class-map.py /path/to/Pandora-Battle
-node tools/verify-class-map.mjs /path/to/Pandora-Battle
+python tools/verify-class-tree.py /path/to/Pandora-Battle
 python tools/verify-field-usage.py /path/to/Pandora-Battle
-node tools/verify-class-graph.mjs
+node tools/verify-class-tree.mjs
 node --check pandora-battle-portfolio/assets/class-map.js
 node --check pandora-battle-portfolio/assets/field-inspector.js
 ```
 
-The builder requires a clean source checkout and cannot regenerate the previous
-576-type map. Priorities express a reading order, not performance. Header
-defaults differ from actual `.uasset` values. References are not called ownership
-without construction evidence. Dashed projection edges name the intermediary
-Widget/Builder; Game Feature ordering is a documented configuration guideline.
+`build-class-tree.py` discovers declarations, fields and methods; it has no
+selected-class list. An independent declaration scan verifies coverage. Source
+verification checks exact declarations/lines, updated weapon bases and source
+ownership, while model verification checks unique placement for every declaration
+and every type filter. `core-class-content.py` supplies existing reviewed roles;
+`class-tree-content.py` overrides changed responsibilities. Header documentation
+supplies additional summaries, with explicit declaration-based summaries when
+no narrative is present.
 
-Source verification checks all field/schema declarations and source links,
-PlayerState ownership, Definition → Skills → SkillDefinition → Action, Tree growth,
-SkillSource registration and AbilitySpec SourceObject use, saved PrimaryAssetIds,
-and separation of StateTree and BT. Geometry verification covers all 100 roots
-in normal/expanded and portrait/landscape variants: unique connected blocks,
-valid fields, source-backed edges, attached ports and no lines through blocks.
-
-Browser verification covers categories, canonical graph navigation/back, search,
-independent details, source links, pan/zoom/fit, the large view, mobile and the
-portfolio iframe. `?class=APdPlayerState` opens its canonical view; `?wide=1`
-opens the large view. `?embed=1` omits standalone chrome and uses a fixed canvas
-height to avoid iframe feedback loops. The child reports content height to a
-same-origin, exact-source-checked listener in `site.js`. Long detail/index lists
-scroll internally so expanded content stays within the parent's height bound.
-
-The main builder also invokes `build-field-usage.py`. It indexes C++ member
-references and verified Getter calls using the same pinned source checkout.
-`field-usage-content.py` supplies reviewed core-member purposes and reusable
-schema descriptions. The index is loaded by `field-inspector.js` only when the
-lower details are opened; source revisions must match before it is displayed.
-
-Direct use, external direct use, and one Getter hop have separate lists. Getter
-callers include a caller → Getter → member path, definition links, and exact
-usage lines. The Getter implementation must itself reference the member; naming
-alone is insufficient. Setter-only calls and arbitrary transitive callers are
-excluded. Editor/tests and project macro-generated GAS accessors are folded into
-separate groups. Comments, strings, shadowing locals, and receivers of unrelated
-types are excluded. This is a source index, not a full Unreal compiler: unresolved
-dynamic types, Blueprint/reflection uses, and asset values are not inferred.
-
-`verify-field-usage.py` checks every selected member, exact evidence lines and
-Getter-to-member definitions, plus regressions for PlayerState, SkillSource,
-PandoraDefinition, lexical scope, typed receivers and Setter-only callers.
-
-## September 2026 GAS revision
-
-The atlas follows the final state of `9f66751`, `0639f90`, and `bdbf797`
-(UE 5.8). The generator records the source revision, engine association, and
-three commit links. The recent-change shortcuts open the canonical skill/action,
-attribute initialization, status effect, and source cooldown graphs.
-
-The 100-class selection replaces deleted `UPandoraInstance`,
-`UAbilityAttributeManager`, and `UProjectileAbility`, and reprioritizes five
-equipment/UI classes. It adds `USkillAbility`, `USkillAction`, the sequence,
-parallel, repeat and projectile cast actions, `UReactiveStatusEffectAbility`,
-and `UStatusEffectWidget`. Old selected-class URLs resolve to their replacement
-or nearest remaining core class.
-
-Key source distinctions are preserved in graph fields and member details:
-
-- `UPandoraDefinition.Skills` directly references skill definitions. The source
-  has four fields and resolves its skill through the definition and slot index.
-- `USkillDefinition.Action` is an asset template; `USkillAbility.ActiveAction`
-  is a per-cast duplicate. Sequence, parallel and repeat actions retain both
-  their inheritance and child-reference meaning in the relationship label.
-- `UStatUpgradeDefinition` calculates ordered initial values; ASC validates all
-  mappings before applying maxima and filling current resources. The deleted
-  attribute manager and intermediate cooldown-handle design are not retained.
-- Cooldown queries filter ASC active effects by source and cooldown tag. Normal
-  skill completion applies cooldown only when its commit/use-count guards pass.
-- Status stack settings, threshold-triggered activation/damage, stack
-  replication, and widget timers are distinct responsibilities. Definition
-  lists and replicated ownership entries are also separate data stores.
-
-Verification includes the new source invariants and member usage regressions.
-This revision indexes 100 classes, 198 relationships and 1,175 selected members;
-geometry verification checks 400 layout variants. C++ configuration is inspected,
-but the website verification does not compile the Unreal project.
+`build-field-usage.py` indexes typed C++ receivers and one verified Getter hop.
+Setter-only calls and arbitrary transitive callers are excluded. Member usage
+bodies render when expanded to keep large classes responsive. Source evidence,
+lexical scope fixtures, and Getter/member paths are verified. Blueprint uses,
+dynamic receivers and actual asset values are not inferred. Website validation
+does not compile the Unreal project.

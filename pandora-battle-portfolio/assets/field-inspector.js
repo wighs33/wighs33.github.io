@@ -10,7 +10,7 @@
     if(loading)return loading;
     failed=false;
     loading=new Promise((resolve,reject)=>{
-      const script=document.createElement('script');script.src='assets/field-usage-data.js?v=gas-3';
+      const script=document.createElement('script');script.src='assets/field-usage-data.js?v='+window.PANDORA_CLASS_MAP.meta.version;
       script.onload=()=>{
         if(window.PANDORA_FIELD_USAGE?.meta.commit===window.PANDORA_CLASS_MAP.meta.commit)resolve();
         else{delete window.PANDORA_FIELD_USAGE;script.remove();reject(Error('Source revision mismatch'));}
@@ -54,6 +54,9 @@
     const summary=el('summary'),head=el('span',undefined,'member-summary-heading');
     head.append(el('code',field.key),el('small',doc?`직접 ${doc.uses.filter(u=>u.access==='direct'&&!data.functions[u.function].generated).length} · Getter ${doc.uses.filter(u=>u.access==='getter').length}`:''));
     summary.append(head,el('span',doc?.purpose||field.declaration,'member-summary-purpose'));card.append(summary);
+    let populated=false;
+    function populate(){
+    if(populated)return;populated=true;
     const body=el('div',undefined,'member-body');
     body.append(el('h4','이 데이터를 갖고 있는 이유'),el('p',doc?.purpose||'함수 사용 데이터를 불러오면 보관 목적과 활용 위치가 표시됩니다.','member-purpose'));
     if(doc){
@@ -63,14 +66,18 @@
       if(!doc.uses.length)body.append(el('p','분석한 C++ 소스에서 이 멤버의 직접 사용이나 Getter 경유 사용 함수는 확인되지 않았습니다. Blueprint·리플렉션에서의 사용 여부는 이 목록에 포함하지 않습니다.','data-note'));
     }
     const raw=el('details',undefined,'member-declaration');raw.append(el('summary','실제 선언 · 하위 데이터'));raw.append(declaration(field));body.append(raw);
-    card.append(body);return card;
+    card.append(body);
+    }
+    if(open)populate();
+    card.addEventListener('toggle',()=>{if(card.open)populate();});
+    return card;
   }
   function render(node,target,declaration){
     if(current?.node.name!==node.name)query='';
     current={node,target,declaration};target.replaceChildren();
     const data=window.PANDORA_FIELD_USAGE;
     target.append(el('p','직접 참조와 Getter를 통한 활용을 구분합니다. Getter 경유는 어떤 접근 함수를 호출했는지 함께 표시합니다. Setter만 호출하거나 더 먼 호출 단계를 거치는 함수는 포함하지 않습니다. 선언의 초기값은 C++ 기본값입니다.','data-note'));
-    if(!node.fields.length){target.append(el('p','이 클래스가 직접 선언한 멤버변수는 없습니다.','data-note'));return;}
+    if(!node.fields.length){target.append(el('p','이 선언의 멤버변수는 없습니다. 함수·열거값과 상속 정보는 오른쪽 또는 아래에서 확인할 수 있습니다.','data-note'));return;}
     if(!data){
       target.append(el('p',failed?'멤버 활용 데이터를 불러오지 못했습니다.':'멤버별 목적과 활용 함수를 불러오는 중…','member-loading'));
       if(failed){const retry=el('button','다시 불러오기');retry.type='button';retry.onclick=load;target.append(retry);}

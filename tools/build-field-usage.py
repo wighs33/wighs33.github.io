@@ -1,4 +1,4 @@
-"""Source-backed member usage index for the curated C++ atlas (no token search matches)."""
+"""Source-backed member usage index for all header declarations (no token search matches)."""
 import argparse
 import collections
 import json
@@ -129,7 +129,7 @@ class Index:
                     if decl:
                         fields[text(decl)] = {'type':self.type_text(member), 'node':member, 'path':path}
                 bases = next((c for c in n.named_children if c.type == 'base_class_clause'), None)
-                self.types[name] = {'fields':fields, 'bases':[x[0] for x in P['declared_types'](bases)]}
+                self.types[name] = {'fields':fields, 'bases':P['base_types'](bases)}
         # All type names must be known before resolving return types and external receivers.
         for path, root in self.asts.items():
             for n in walk(root):
@@ -391,6 +391,9 @@ def build(repo, destination=None):
     for owner,n in selected.items():
         fields[owner] = {}
         for field in n['fields']:
+            indexed = index.types.get(owner,{}).get('fields',{}).get(field['key'])
+            if not indexed or indexed['path'] != field['path']:
+                raise ValueError(f'Ambiguous or missing indexed member: {owner}.{field["key"]}')
             key = field['key']
             h = next((h for h in n['highlights'] if key in h['keys']),None)
             comment = preceding_comment(index.sources[field['path']],field['line']-1)

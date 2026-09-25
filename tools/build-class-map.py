@@ -1,4 +1,4 @@
-"""Compatibility entry point: always build the curated 100-class atlas."""
+"""Build the complete game-header class tree and member documentation."""
 import runpy
 from pathlib import Path
-runpy.run_path(str(Path(__file__).with_name("build-core-class-map.py")), run_name="__main__")
+runpy.run_path(str(Path(__file__).with_name("build-class-tree.py")), run_name="__main__")
